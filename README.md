@@ -4,6 +4,9 @@ A personal income and expense tracker that runs entirely in the browser. No acco
 
 Built for (myself) people who want a simple monthly ledger without the overhead of a full budgeting app.
 
+## Deployment
+The app is deployed on Vercel at https://sagi-ledger-web.vercel.app/
+
 ## Data
 
 Everything is stored in `localStorage` under the key `sagi-storage`. Nothing leaves your browser. Clearing site data will erase your history.
