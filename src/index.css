@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+/* ─── Theme tokens ────────────────────────────────────────────────────────────
+   All visual colours live here. To change the theme, edit the :root block.
+   To add a dark theme, add a [data-theme="dark"] { } block below with overrides
+   and toggle it on <html> with JS: document.documentElement.dataset.theme = 'dark'
+──────────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Surfaces — warm mid-gray, not too light */
+  --page:             #c8c4bc;
+  --card:             #d4d0c8;
+  --subtle:           #ccc8c0;
+  --hover:            #c0bdb5;
+  --thead:            #cac6be;
+  --monthbar:         #c4c0b8;
+
+  /* Borders */
+  --stroke:           #aeaaa2;
+  --stroke-light:     #c0bcb4;
+
+  /* Text */
+  --ink:              #2c2825;
+  --ink-muted:        #5a5650;
+  --ink-faint:        #807870;
+  --ink-ghost:        #a09890;
+
+  /* Income — earthy olive, clearly visible but not neon */
+  --income:           #2e3c14;
+  --income-surface:   #bfcda0;
+  --income-btn:       #b0c08c;
+  --income-btn-hover: #a4b47c;
+  --income-stroke:    #90a868;
+
+  /* Expense — warm brick, clearly visible but not neon */
+  --expense:          #581010;
+  --expense-surface:  #c9a0a0;
+  --expense-btn:      #bc9090;
+  --expense-btn-hover:#b08080;
+  --expense-stroke:   #a07070;
+
+  /* Accent (burnt orange) — logo, buttons, focus rings */
+  --accent:           #BC6C25;
+
+  /* Danger — destructive confirm */
+  --danger:           #9D1B1B;
+}
+
+[data-theme="dark"] {
+  --page:             #0d1117;
+  --card:             #161b22;
+  --subtle:           #21262d;
+  --hover:            #30363d;
+  --thead:            #1c2128;
+  --monthbar:         #161b22;
+  --stroke:           #30363d;
+  --stroke-light:     #21262d;
+  --ink:              #e2e8f0;
+  --ink-muted:        #8b949e;
+  --ink-faint:        #6e7681;
+  --ink-ghost:        #484f58;
+  --income:           #8aa868;
+  --income-surface:   #1a2810;
+  --income-btn:       #243418;
+  --income-btn-hover: #2e4220;
+  --income-stroke:    #3a5428;
+  --expense:          #c06868;
+  --expense-surface:  #281010;
+  --expense-btn:      #381818;
+  --expense-btn-hover:#442020;
+  --expense-stroke:   #6a2c2c;
+  --accent:           #e8914a;
+  --danger:           #f87171;
+}
+
+/* ─── Map CSS vars → Tailwind utilities via @theme inline ────────────────── */
+@theme inline {
+  --color-page:             var(--page);
+  --color-card:             var(--card);
+  --color-subtle:           var(--subtle);
+  --color-hover:            var(--hover);
+  --color-thead:            var(--thead);
+  --color-monthbar:         var(--monthbar);
+  --color-stroke:           var(--stroke);
+  --color-stroke-light:     var(--stroke-light);
+  --color-ink:              var(--ink);
+  --color-ink-muted:        var(--ink-muted);
+  --color-ink-faint:        var(--ink-faint);
+  --color-ink-ghost:        var(--ink-ghost);
+  --color-income:           var(--income);
+  --color-income-surface:   var(--income-surface);
+  --color-income-btn:       var(--income-btn);
+  --color-income-btn-hover: var(--income-btn-hover);
+  --color-income-stroke:    var(--income-stroke);
+  --color-expense:          var(--expense);
+  --color-expense-surface:  var(--expense-surface);
+  --color-expense-btn:      var(--expense-btn);
+  --color-expense-btn-hover:var(--expense-btn-hover);
+  --color-expense-stroke:   var(--expense-stroke);
+  --color-accent:           var(--accent);
+  --color-danger:           var(--danger);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  background-color: var(--page);
+  color: var(--ink);
+}
