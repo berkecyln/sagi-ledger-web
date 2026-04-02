@@ -43,6 +43,7 @@ export default function CreatableSelect({ value, onChange, options, placeholder,
       <input
         id={id}
         type="text"
+        autoComplete="off"
         value={query}
         placeholder={placeholder}
         className="w-full bg-subtle border border-stroke rounded px-3 py-2 text-sm text-ink placeholder:text-ink-ghost focus:outline-none focus:border-accent"

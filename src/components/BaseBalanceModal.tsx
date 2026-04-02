@@ -85,7 +85,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-5 py-4 flex flex-col max-h-[85vh]">
+        <form autoComplete="off" onSubmit={handleSubmit} className="px-5 py-4 flex flex-col max-h-[85vh]">
           <p className="text-xs text-muted-foreground mb-4 flex-shrink-0">
             Set an initial starting balance for your accounts. This will be
             added to the calculated cumulative totals.
@@ -120,6 +120,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
                     <input
                       type="number"
                       step="0.01"
+                      autoComplete="off"
                       value={balances[account] || ""}
                       onChange={(e) =>
                         setBalances({ ...balances, [account]: e.target.value })
@@ -137,6 +138,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
                 <div className="flex-1 min-w-0">
                   <input
                     type="text"
+                    autoComplete="off"
                     value={acc.name}
                     onChange={(e) => {
                       const updated = [...newAccounts];
@@ -155,6 +157,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
                   <input
                     type="number"
                     step="0.01"
+                    autoComplete="off"
                     value={acc.amount}
                     onChange={(e) => {
                       const updated = [...newAccounts];

@@ -62,11 +62,11 @@ export default function TransactionModal({ type, onClose, editTransaction, isTem
           <button onClick={onClose} className="hover:opacity-60 transition-opacity"><X size={18} /></button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
+        <form autoComplete="off" onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
           <div>
             <label htmlFor="amount" className="block text-xs font-medium text-ink-muted mb-1">Amount (€)</label>
             <input
-              id="amount" type="number" step="0.01" min="0" required
+              id="amount" type="number" step="0.01" min="0" required autoComplete="off"
               value={amount} onChange={(e) => setAmount(e.target.value)}
               className="w-full bg-subtle border border-stroke rounded px-3 py-2 text-sm text-ink placeholder:text-ink-ghost focus:outline-none focus:border-accent"
               placeholder="0.00" autoFocus
@@ -77,7 +77,7 @@ export default function TransactionModal({ type, onClose, editTransaction, isTem
             <div>
               <label htmlFor="date" className="block text-xs font-medium text-ink-muted mb-1">Date</label>
               <input
-                id="date" type="date" required value={date} onChange={(e) => setDate(e.target.value)}
+                id="date" type="date" required autoComplete="off" value={date} onChange={(e) => setDate(e.target.value)}
                 className="w-full bg-subtle border border-stroke rounded px-3 py-2 text-sm text-ink focus:outline-none focus:border-accent"
               />
             </div>
@@ -87,7 +87,7 @@ export default function TransactionModal({ type, onClose, editTransaction, isTem
                 Day of month <span className="text-ink-ghost">(optional, 1–28)</span>
               </label>
               <input
-                id="templateDay" type="number" min="1" max="28"
+                id="templateDay" type="number" min="1" max="28" autoComplete="off"
                 value={templateDay} onChange={(e) => setTemplateDay(e.target.value)}
                 className="w-full bg-subtle border border-stroke rounded px-3 py-2 text-sm text-ink placeholder:text-ink-ghost focus:outline-none focus:border-accent"
                 placeholder="Leave blank for 1st of month"
