@@ -107,3 +107,37 @@ body {
   background-color: var(--page);
   color: var(--ink);
 }
+
+@layer utilities {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.2s;
+  }
+  
+  .custom-scrollbar:hover {
+    scrollbar-color: var(--stroke) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 6px;
+  }
+
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: var(--stroke);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--ink-faint);
+  }
+}

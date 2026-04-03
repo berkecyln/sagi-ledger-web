@@ -5,10 +5,10 @@ import CumulativeFooter from './CumulativeFooter';
 
 export default function Layout() {
   return (
-    <div className="min-h-screen flex flex-col bg-page">
+    <div className="h-screen flex flex-col bg-page overflow-hidden">
       <Header />
       <MonthBar />
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-6 overflow-hidden flex flex-col min-h-0">
         <Outlet />
       </main>
       <CumulativeFooter />
