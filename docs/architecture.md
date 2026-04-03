@@ -60,6 +60,8 @@ src/components/Layout.tsx       wraps every page
 |---|---|
 | AccountTag | [components/AccountTag.md](components/AccountTag.md) |
 | TransactionModal | [components/TransactionModal.md](components/TransactionModal.md) |
+| CumulativeFooter | [components/CumulativeFooter.md](components/CumulativeFooter.md) |
+| BaseBalanceModal | [components/BaseBalanceModal.md](components/BaseBalanceModal.md) |
 | IncomeBar | [components/IncomeBar.md](components/IncomeBar.md) |
 | ExpenseProgressBars | [components/ExpenseProgressBars.md](components/ExpenseProgressBars.md) |
 | CreatableSelect | [components/CreatableSelect.md](components/CreatableSelect.md) |
