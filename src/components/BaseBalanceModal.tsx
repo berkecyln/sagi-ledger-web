@@ -71,29 +71,29 @@ export default function BaseBalanceModal({ onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-card rounded-lg w-full max-w-sm border border-border shadow-lg">
-        <div className="flex items-center justify-between px-5 py-4 rounded-t-lg border-b border-border bg-page">
-          <h2 className="font-semibold text-base">
+      <div className="bg-card rounded-lg w-full max-w-sm border border-stroke shadow-lg">
+        <div className="flex items-center justify-between px-5 py-4 rounded-t-lg border-b border-stroke bg-page">
+          <h2 className="font-semibold text-base text-ink">
             Adjust Saving Base Amounts
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="hover:opacity-60 transition-opacity text-muted-foreground"
+            className="hover:opacity-60 transition-opacity text-ink-muted"
           >
             <X size={18} />
           </button>
         </div>
 
         <form autoComplete="off" onSubmit={handleSubmit} className="px-5 py-4 flex flex-col max-h-[85vh]">
-          <p className="text-xs text-muted-foreground mb-4 flex-shrink-0">
+          <p className="text-xs text-ink-muted mb-4 flex-shrink-0">
             Set an initial starting balance for your accounts. This will be
             added to the calculated cumulative totals.
           </p>
 
           <div className="space-y-3 overflow-y-auto pr-1 pb-2 flex-grow">
             {accounts.length === 0 && newAccounts.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic">
+              <p className="text-sm text-ink-muted italic">
                 No accounts exist yet. Click below to add one.
               </p>
             ) : (
@@ -109,12 +109,15 @@ export default function BaseBalanceModal({ onClose }: Props) {
                         backgroundColor: accountColors[account] || "#ccc",
                       }}
                     />
-                    <span className="font-medium text-sm text-foreground truncate">
+                    <span
+                      className="font-medium text-sm truncate"
+                      style={{ color: accountColors[account] || "var(--ink)" }}
+                    >
                       {account}
                     </span>
                   </div>
                   <div className="flex-shrink-0 relative w-28">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">
                       €
                     </span>
                     <input
@@ -125,7 +128,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
                       onChange={(e) =>
                         setBalances({ ...balances, [account]: e.target.value })
                       }
-                      className="w-full bg-background border border-border rounded pl-6 pr-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-opacity-50"
+                      className="w-full bg-background border border-stroke rounded pl-6 pr-2 py-1.5 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent/50"
                       placeholder="0.00"
                     />
                   </div>
@@ -145,13 +148,13 @@ export default function BaseBalanceModal({ onClose }: Props) {
                       updated[index].name = e.target.value;
                       setNewAccounts(updated);
                     }}
-                    className="w-full bg-background border border-border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-opacity-50"
+                    className="w-full bg-background border border-stroke rounded px-3 py-1.5 text-sm text-ink placeholder:text-ink-ghost focus:outline-none focus:ring-1 focus:ring-accent/50"
                     placeholder="New account name"
                     autoFocus
                   />
                 </div>
                 <div className="flex-shrink-0 relative w-24">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">
                     €
                   </span>
                   <input
@@ -164,14 +167,14 @@ export default function BaseBalanceModal({ onClose }: Props) {
                       updated[index].amount = e.target.value;
                       setNewAccounts(updated);
                     }}
-                    className="w-full bg-background border border-border rounded pl-6 pr-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-opacity-50"
+                    className="w-full bg-background border border-stroke rounded pl-6 pr-2 py-1.5 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent/50"
                     placeholder="0.00"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={() => handleRemoveNewRow(acc.id)}
-                  className="text-muted-foreground hover:text-red-500 transition-colors"
+                  className="text-ink-muted hover:text-danger transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -183,23 +186,23 @@ export default function BaseBalanceModal({ onClose }: Props) {
             <button
               type="button"
               onClick={handleAddNewRow}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground font-medium transition-colors"
+              className="flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink font-medium transition-colors"
             >
               <Plus size={16} /> Add New Account
             </button>
           </div>
 
-          <div className="flex justify-end gap-2 pt-6 mt-2 border-t border-border flex-shrink-0">
+          <div className="flex justify-end gap-2 pt-6 mt-2 border-t border-stroke flex-shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm rounded border border-border text-foreground hover:bg-page transition-colors"
+              className="px-4 py-2 text-sm rounded border border-stroke text-ink hover:bg-page transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1.5 px-4 py-2 text-sm rounded font-medium bg-slate-800 text-white hover:bg-slate-700 transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 text-sm rounded font-medium bg-accent text-page hover:opacity-80 transition-opacity"
             >
               <Save size={16} /> Save
             </button>
