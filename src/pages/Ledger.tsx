@@ -50,7 +50,7 @@ export default function Ledger() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3 shrink-0">
         <h1 className="font-semibold text-ink">Ledger</h1>
         <div className="flex gap-2">
           <button
@@ -69,7 +69,7 @@ export default function Ledger() {
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-wrap gap-2 mb-3 p-3 bg-card border border-stroke rounded-lg">
+      <div className="flex flex-wrap gap-2 mb-3 p-3 bg-card border border-stroke rounded-lg shrink-0">
         <select value={filterType} onChange={(e) => setFilterType(e.target.value as typeof filterType)} className={selectClass}>
           <option value="ALL">All types</option>
           <option value="INCOME">Income</option>
@@ -96,19 +96,19 @@ export default function Ledger() {
         )}
       </div>
 
-      <div className="border border-stroke rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-thead border-b border-stroke">
+      <div className="border border-stroke rounded-lg overflow-y-auto flex-1 min-h-0 custom-scrollbar bg-card">
+        <table className="w-full text-sm border-separate border-spacing-0">
+          <thead className="bg-thead sticky top-0 z-10">
             <tr>
               {(['date', 'type', 'description', 'account', 'amount'] as SortKey[]).map((col) => (
-                <th key={col} className={th} onClick={() => toggleSort(col)}>
+                <th key={col} className={`${th} border-b border-stroke`} onClick={() => toggleSort(col)}>
                   <span className="flex items-center gap-1">
                     {col.charAt(0).toUpperCase() + col.slice(1)}
                     <SortIcon col={col} />
                   </span>
                 </th>
               ))}
-              <th className="px-4 py-2.5 w-10" />
+              <th className="px-4 py-2.5 w-10 border-b border-stroke" />
             </tr>
           </thead>
           <tbody>

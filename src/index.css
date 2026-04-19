@@ -112,6 +112,7 @@ body {
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
+    scrollbar-gutter: stable both-edges;
     transition: scrollbar-color 0.2s;
   }
   
