@@ -11,19 +11,21 @@ export default function CumulativeFooter() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const activeBalances = useMemo(() => {
-    // Start with the base balances mapped into totals
-    const totals: Record<string, number> = { ...baseAccountBalances };
+    // Every known account, same list as the settings modal
+    const totals: Record<string, number> = {};
+    for (const account of Object.keys(accountColors)) {
+      totals[account] = baseAccountBalances[account] ?? 0;
+    }
 
+    // Monthly activity on top
     for (const month of Object.values(monthlyBalances)) {
       for (const [account, amount] of Object.entries(month)) {
-        totals[account] = (totals[account] || 0) + amount;
+        totals[account] = (totals[account] ?? 0) + amount;
       }
     }
 
-    return Object.entries(totals)
-      .filter(([_, amount]) => amount !== 0)
-      .sort((a, b) => b[1] - a[1]);
-  }, [monthlyBalances, baseAccountBalances]);
+    return Object.entries(totals).sort((a, b) => b[1] - a[1]);
+  }, [monthlyBalances, baseAccountBalances, accountColors]);
 
   if (activeBalances.length === 0) return null;
 

@@ -2,19 +2,23 @@
 
 **File:** `src/components/CumulativeFooter.tsx`
 
-A bottom footer bar that shows cumulative account balances across all months plus optional base balances. Appears at the bottom of the app layout and hides itself when all totals are zero.
+A bottom footer bar that shows cumulative account balances across all months plus optional base balances. Appears at the bottom of the app layout and hides itself when there is nothing to show.
 
 ## Data source
 
+- `accountColors` from store (account -> hex color), doubles as the list of known accounts
 - `monthlyBalances` from store (month -> account -> net amount)
 - `baseAccountBalances` from store (account -> starting amount)
-- `accountColors` from store (account -> hex color)
 
 For each account:
 
 `total = baseAccountBalances[account] + sum(monthlyBalances[*][account])`
 
-Accounts with total `0` are filtered out. Remaining accounts are sorted descending by amount.
+Every account in `accountColors` gets a pill, so the footer always lists exactly the same accounts as [`BaseBalanceModal`](BaseBalanceModal.md).
+
+An account leaves the footer only by being deleted in the settings modal, which is possible once nothing references it.
+
+Accounts are sorted descending by amount.
 
 ## Visual behaviour
 

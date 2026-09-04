@@ -82,6 +82,16 @@ export function getUniqueAccounts(months: Record<string, Transaction[]>): string
   return [...new Set(all.map((t) => t.account))].filter(Boolean).sort();
 }
 
+// Account referenced by any transaction or template item
+export function isAccountInUse(
+  account: string,
+  months: Record<string, Transaction[]>,
+  template: Transaction[]
+): boolean {
+  const all = [...Object.values(months).flat(), ...template];
+  return all.some((t) => t.account === account);
+}
+
 export function formatEuro(amount: number): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
 }

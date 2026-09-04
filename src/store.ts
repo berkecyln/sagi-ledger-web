@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Transaction, TransactionType } from "./types";
 import { getNextColor } from "./utils/colors";
+import { isAccountInUse } from "./utils/aggregations";
 
 function todayKey(): string {
   return new Date().toISOString().slice(0, 7);
@@ -100,6 +101,7 @@ interface StoreState {
   ) => void;
   setAccountColor: (account: string, color: string) => void;
   setBaseAccountBalance: (account: string, amount: number) => void;
+  deleteAccount: (account: string) => void;
   addDescription: (type: TransactionType, label: string) => void;
   deleteDescription: (type: TransactionType, label: string) => void;
 }
@@ -227,6 +229,29 @@ export const useStore = create<StoreState>()(
         set((s) => ({
           baseAccountBalances: { ...s.baseAccountBalances, [account]: amount },
         }));
+      },
+
+      // Delete account, blocked while any transaction or template item still uses it
+      deleteAccount: (account) => {
+        const { months, template } = get();
+        if (isAccountInUse(account, months, template)) return;
+
+        set((s) => {
+          const accountColors = { ...s.accountColors };
+          const baseAccountBalances = { ...s.baseAccountBalances };
+          delete accountColors[account];
+          delete baseAccountBalances[account];
+
+          // Drop stale cache entries so no chip survives in the footer
+          const monthlyBalances: Record<string, Record<string, number>> = {};
+          for (const [key, balances] of Object.entries(s.monthlyBalances)) {
+            const month = { ...balances };
+            delete month[account];
+            monthlyBalances[key] = month;
+          }
+
+          return { accountColors, baseAccountBalances, monthlyBalances };
+        });
       },
 
       // Add label to the suggestion list of its type

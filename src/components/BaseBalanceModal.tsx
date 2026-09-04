@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Save, Plus } from "lucide-react";
 import { useStore } from "../store";
 import { getNextColor } from "../utils/colors";
+import { isAccountInUse } from "../utils/aggregations";
 
 interface Props {
   onClose: () => void;
@@ -12,6 +13,9 @@ export default function BaseBalanceModal({ onClose }: Props) {
   const baseAccountBalances = useStore((state) => state.baseAccountBalances);
   const setBaseAccountBalance = useStore((state) => state.setBaseAccountBalance);
   const setAccountColor = useStore((state) => state.setAccountColor);
+  const deleteAccount = useStore((state) => state.deleteAccount);
+  const months = useStore((state) => state.months);
+  const template = useStore((state) => state.template);
 
   const accounts = Object.keys(accountColors).sort();
 
@@ -36,6 +40,16 @@ export default function BaseBalanceModal({ onClose }: Props) {
 
   function handleRemoveNewRow(id: number) {
     setNewAccounts(newAccounts.filter((acc) => acc.id !== id));
+  }
+
+  // Drop the row from local state too
+  function handleDeleteAccount(account: string) {
+    deleteAccount(account);
+    setBalances((prev) => {
+      const next = { ...prev };
+      delete next[account];
+      return next;
+    });
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -97,7 +111,9 @@ export default function BaseBalanceModal({ onClose }: Props) {
                 No accounts exist yet. Click below to add one.
               </p>
             ) : (
-              accounts.map((account) => (
+              accounts.map((account) => {
+                const inUse = isAccountInUse(account, months, template);
+                return (
                 <div
                   key={account}
                   className="flex items-center justify-between gap-3"
@@ -116,7 +132,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
                       {account}
                     </span>
                   </div>
-                  <div className="flex-shrink-0 relative w-28">
+                  <div className="flex-shrink-0 relative w-24">
                     <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">
                       €
                     </span>
@@ -132,8 +148,28 @@ export default function BaseBalanceModal({ onClose }: Props) {
                       placeholder="0.00"
                     />
                   </div>
+                  {/* Delete account */}
+                  <button
+                    type="button"
+                    disabled={inUse}
+                    onClick={() => handleDeleteAccount(account)}
+                    className={
+                      inUse
+                        ? "text-ink-ghost cursor-not-allowed"
+                        : "text-ink-muted hover:text-danger transition-colors"
+                    }
+                    aria-label={`Remove ${account}`}
+                    title={
+                      inUse
+                        ? "Still used by transactions"
+                        : "Remove account"
+                    }
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
-              ))
+                );
+              })
             )}
 
             {newAccounts.map((acc, index) => (

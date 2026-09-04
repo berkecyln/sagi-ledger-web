@@ -44,7 +44,13 @@ Persisted under `sagi-storage` at **version 2**, so no suggestions are lost on u
 
 It is **explicit, not derived**: typing a new label into the field does not save it. Only clicking the `Create "X"` row does, via `addDescription(type, label)`. The cross on each dropdown row calls `deleteDescription(type, label)`, which removes the suggestion only; existing transactions keep their description text.
 
-Account names are still derived from transactions (`getUniqueAccounts`) and have no removal path yet.
+## Accounts
+
+Accounts have no entity of their own. A name exists because it is a key in `accountColors`, created automatically by `ensureAccountColor` the first time any transaction names it, or by BaseBalanceModal when you add one by hand. `accountColors` is therefore the account registry, and both the CumulativeFooter and BaseBalanceModal list it, so the two always agree.
+
+`deleteAccount` removes the name from `accountColors`, `baseAccountBalances` and any stale `monthlyBalances` entry. It is guarded by `isAccountInUse` and does nothing while a transaction or template item still names the account, so removal can never orphan data. The remove button in [`BaseBalanceModal`](components/BaseBalanceModal.md) renders disabled in that case.
+
+The account dropdown in TransactionModal is still derived via `getUniqueAccounts`, so it lists names in use rather than the `accountColors` keys.
 
 ## Month initialization
 
@@ -98,5 +104,6 @@ All colours are CSS custom properties defined in `src/index.css`. See [theming.m
 | `aggregateByAccount` | IncomeBar, ExpenseProgressBars, Analytics income donut |
 | `getUniqueDescriptions` | Ledger description filter (reflects real data, not the curated list) |
 | `getUniqueAccounts` | TransactionModal account dropdown, Ledger account filter |
+| `isAccountInUse` | Guards `deleteAccount`, disables the remove button in BaseBalanceModal |
 | `formatEuro` | Everywhere amounts are displayed |
 | `getNextColor` | store.ts auto-assigns account colors |
