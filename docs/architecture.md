@@ -26,7 +26,25 @@ One `Transaction` object is the only entity:
 | `months` | `Record<YYYY-MM, Transaction[]>` | ✅ | All entered data |
 | `template` | `Transaction[]` | ✅ | Recurring items auto-copied to new months |
 | `accountColors` | `Record<string, string>` | ✅ | Account name → hex color |
+| `monthlyBalances` | `Record<YYYY-MM, Record<account, number>>` | ✅ | Cached net per account per month |
+| `baseAccountBalances` | `Record<string, number>` | ✅ | User-set starting balance per account |
+| `descriptions` | `Record<'INCOME' \| 'EXPENSE', string[]>` | ✅ | User-curated label lists, one per type, see below |
 | `activeMonthKey` | `string` | ❌ | Resets to current month on every load |
+
+Persisted under `sagi-storage` at **version 2**, so no suggestions are lost on upgrade:
+
+| Migration | Does |
+|---|---|
+| v0 to v2 | Builds both lists from labels already used in `months` + `template`, grouped by transaction type |
+| v1 to v2 | Same, plus any label from the old flat list that is not yet in use goes to both lists, since it carries no type |
+
+## Description labels
+
+`descriptions` holds one suggestion list per transaction type. Income and expense labels never mix: the Add Income modal only ever sees `descriptions.INCOME`.
+
+It is **explicit, not derived**: typing a new label into the field does not save it. Only clicking the `Create "X"` row does, via `addDescription(type, label)`. The cross on each dropdown row calls `deleteDescription(type, label)`, which removes the suggestion only; existing transactions keep their description text.
+
+Account names are still derived from transactions (`getUniqueAccounts`) and have no removal path yet.
 
 ## Month initialization
 
@@ -78,6 +96,7 @@ All colours are CSS custom properties defined in `src/index.css`. See [theming.m
 | `aggregateByDescriptionWithAccounts` | Dashboard expense rows |
 | `aggregateByDescription` | Analytics expense donut |
 | `aggregateByAccount` | IncomeBar, ExpenseProgressBars, Analytics income donut |
-| `getUniqueDescriptions` / `getUniqueAccounts` | TransactionModal dropdowns, Ledger filters |
+| `getUniqueDescriptions` | Ledger description filter (reflects real data, not the curated list) |
+| `getUniqueAccounts` | TransactionModal account dropdown, Ledger account filter |
 | `formatEuro` | Everywhere amounts are displayed |
 | `getNextColor` | store.ts auto-assigns account colors |

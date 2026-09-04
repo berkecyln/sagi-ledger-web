@@ -38,6 +38,46 @@ function recalculateMonthlyBalances(
   return monthlyBalances;
 }
 
+type DescriptionLists = Record<TransactionType, string[]>;
+
+type PersistedState = {
+  template?: Transaction[];
+  months?: Record<string, Transaction[]>;
+  descriptions?: string[] | DescriptionLists;
+};
+
+// Description list migration from old logic
+function collectDescriptions(
+  state: PersistedState,
+  legacy: string[],
+): DescriptionLists {
+  const lists: DescriptionLists = { INCOME: [], EXPENSE: [] };
+  const all = [
+    ...Object.values(state.months ?? {}).flat(),
+    ...(state.template ?? []),
+  ];
+
+  // Labels in use, grouped by type
+  for (const tx of all) {
+    const label = tx.description?.trim();
+    if (label && !lists[tx.type].includes(label)) lists[tx.type].push(label);
+  }
+
+  // Untyped labels from the old flat list
+  for (const label of legacy) {
+    const clean = label.trim();
+    if (!clean) continue;
+    if (!lists.INCOME.includes(clean) && !lists.EXPENSE.includes(clean)) {
+      lists.INCOME.push(clean);
+      lists.EXPENSE.push(clean);
+    }
+  }
+
+  lists.INCOME.sort();
+  lists.EXPENSE.sort();
+  return lists;
+}
+
 interface StoreState {
   template: Transaction[];
   months: Record<string, Transaction[]>;
@@ -45,6 +85,7 @@ interface StoreState {
   accountColors: Record<string, string>; // account name → hex color
   monthlyBalances: Record<string, Record<string, number>>;
   baseAccountBalances: Record<string, number>;
+  descriptions: DescriptionLists; // user-curated labels per type, only grow on explicit create
 
   setActiveMonth: (key: string) => void;
   applyTemplateToMonth: () => void;
@@ -59,6 +100,8 @@ interface StoreState {
   ) => void;
   setAccountColor: (account: string, color: string) => void;
   setBaseAccountBalance: (account: string, amount: number) => void;
+  addDescription: (type: TransactionType, label: string) => void;
+  deleteDescription: (type: TransactionType, label: string) => void;
 }
 
 export const useStore = create<StoreState>()(
@@ -70,6 +113,7 @@ export const useStore = create<StoreState>()(
       accountColors: {},
       monthlyBalances: {},
       baseAccountBalances: {},
+      descriptions: { INCOME: [], EXPENSE: [] },
 
       setActiveMonth: (key) => {
         set((s) => ({
@@ -184,16 +228,55 @@ export const useStore = create<StoreState>()(
           baseAccountBalances: { ...s.baseAccountBalances, [account]: amount },
         }));
       },
+
+      // Add label to the suggestion list of its type
+      addDescription: (type, label) => {
+        const clean = label.trim();
+        if (!clean) return;
+        set((s) =>
+          s.descriptions[type].includes(clean)
+            ? s
+            : {
+                descriptions: {
+                  ...s.descriptions,
+                  [type]: [...s.descriptions[type], clean].sort(),
+                },
+              },
+        );
+      },
+
+      // Removes the label from the suggestion list only, transactions keep descriptions intact.
+      deleteDescription: (type, label) => {
+        set((s) => ({
+          descriptions: {
+            ...s.descriptions,
+            [type]: s.descriptions[type].filter((d) => d !== label),
+          },
+        }));
+      },
     }),
     {
       name: "sagi-storage",
+      version: 2,
       partialize: (s) => ({
         template: s.template,
         months: s.months,
         accountColors: s.accountColors,
         monthlyBalances: s.monthlyBalances,
         baseAccountBalances: s.baseAccountBalances,
+        descriptions: s.descriptions,
       }),
+      // migrattion starter for the descriptions list
+      migrate: (persisted, version) => {
+        const state = persisted as PersistedState;
+        if (version < 2) {
+          const legacy = Array.isArray(state.descriptions)
+            ? state.descriptions
+            : [];
+          state.descriptions = collectDescriptions(state, legacy);
+        }
+        return state;
+      },
     },
   ),
 );

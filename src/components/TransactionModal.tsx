@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Check } from 'lucide-react';
 import { useStore } from '../store';
-import { getUniqueAccounts, getUniqueDescriptions } from '../utils/aggregations';
+import { getUniqueAccounts } from '../utils/aggregations';
 import { ACCOUNT_PALETTE } from '../utils/colors';
 import CreatableSelect from './CreatableSelect';
 import type { Transaction, TransactionType } from '../types';
@@ -18,7 +18,7 @@ function todayStr(): string {
 }
 
 export default function TransactionModal({ type, onClose, editTransaction, isTemplate = false }: Props) {
-  const { months, accountColors, setAccountColor, addTransaction, updateTransaction, addTemplateItem, updateTemplateItem } = useStore();
+  const { months, accountColors, descriptions, setAccountColor, addDescription, deleteDescription, addTransaction, updateTransaction, addTemplateItem, updateTemplateItem } = useStore();
 
   const isEdit = !!editTransaction;
 
@@ -28,7 +28,6 @@ export default function TransactionModal({ type, onClose, editTransaction, isTem
   const [description, setDescription] = useState(editTransaction?.description ?? '');
   const [account, setAccount] = useState(editTransaction?.account ?? '');
 
-  const allDescriptions = getUniqueDescriptions(months);
   const allAccounts = getUniqueAccounts(months);
 
   const currentColor = account ? accountColors[account] : undefined;
@@ -97,7 +96,15 @@ export default function TransactionModal({ type, onClose, editTransaction, isTem
 
           <div>
             <label htmlFor="description" className="block text-xs font-medium text-ink-muted mb-1">Description</label>
-            <CreatableSelect id="description" value={description} onChange={setDescription} options={allDescriptions} placeholder="e.g. Salary, Rent, Groceries" />
+            <CreatableSelect
+              id="description"
+              value={description}
+              onChange={setDescription}
+              options={descriptions[type]}
+              onCreate={(label) => addDescription(type, label)}
+              onDelete={(label) => deleteDescription(type, label)}
+              placeholder={type === 'INCOME' ? 'e.g. Salary, Bonus' : 'e.g. Rent, Groceries'}
+            />
           </div>
 
           <div>

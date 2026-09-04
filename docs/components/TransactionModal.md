@@ -17,7 +17,7 @@ A modal dialog used for adding and editing transactions. Shared across Dashboard
 
 - **Amount** — number input
 - **Date** — date picker (normal mode) OR day-of-month 1–28 (template mode)
-- **Description** — [`CreatableSelect`](CreatableSelect.md) populated from all existing descriptions
+- **Description**: [`CreatableSelect`](CreatableSelect.md) populated from `store.descriptions[type]`, the curated list for this modal's transaction type. `onCreate` and `onDelete` are bound to that same type
 - **Account** — [`CreatableSelect`](CreatableSelect.md) populated from all existing accounts
 - **Account color** — swatch picker (12 colors) appears when account field has a value. Clicking a swatch immediately calls `setAccountColor` and updates everywhere.
 
