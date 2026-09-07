@@ -37,7 +37,7 @@ export default function TransactionModal({ type, onClose, editTransaction, isTem
     if (!description || !account) return;
 
     const euros = parseFloat(amount);
-    if (isNaN(euros) || euros <= 0) return;
+    if (isNaN(euros) || euros < 0) return;
     const cents = Math.round(euros * 100);
 
     if (isTemplate) {
