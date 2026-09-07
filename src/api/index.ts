@@ -39,5 +39,16 @@ export {
 } from "./templateItems";
 export { createDescription, deleteDescription } from "./descriptions";
 export { loadAll, emptyState, isEmpty } from "./loadAll";
+export {
+  readLegacyBlob,
+  hasLegacyBlob,
+  planImport,
+  runImport,
+  downloadLegacyBackup,
+  clearLegacyBlob,
+  legacyId,
+  LEGACY_KEY,
+} from "./import";
+export type { LegacyBlob, ImportPlan, ImportResult } from "./import";
 export type { HydratedState } from "./loadAll";
 export type * from "./types";

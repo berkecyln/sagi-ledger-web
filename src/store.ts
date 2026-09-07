@@ -55,6 +55,7 @@ interface StoreState {
   error: string | null;
   writeError: string | null;
   applying: { done: number; total: number } | null;
+  offerImport: boolean;
   template: Transaction[];
   months: Record<string, Transaction[]>;
   activeMonthKey: string;
@@ -83,6 +84,7 @@ interface StoreState {
   hydrate: (data: HydratedState) => void;
   failLoading: (message: string) => void;
   clearWriteError: () => void;
+  setOfferImport: (offer: boolean) => void;
   reset: () => void;
 }
 
@@ -111,6 +113,7 @@ export const useStore = create<StoreState>()((set, get) => {
     error: null,
     writeError: null,
     applying: null,
+    offerImport: false,
     template: [],
     months: {},
     activeMonthKey: todayKey(),
@@ -363,6 +366,11 @@ export const useStore = create<StoreState>()((set, get) => {
       set({ writeError: null });
     },
 
+    // Show or hide the one time import offer
+    setOfferImport: (offer) => {
+      set({ offerImport: offer });
+    },
+
     // Clear the data held for the previous user
     reset: () => {
       set({
@@ -370,6 +378,7 @@ export const useStore = create<StoreState>()((set, get) => {
         error: null,
         writeError: null,
         applying: null,
+        offerImport: false,
         ...emptyData,
       });
     },
