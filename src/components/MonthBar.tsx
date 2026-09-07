@@ -29,6 +29,14 @@ export default function MonthBar() {
 
   return (
     <div className="bg-monthbar border-b border-stroke py-3 relative">
+      {applying && (
+        <div className="absolute inset-x-0 bottom-0 h-0.5 bg-stroke">
+          <div
+            className="h-full bg-accent transition-all duration-200"
+            style={{ width: `${(applying.done / applying.total) * 100}%` }}
+          />
+        </div>
+      )}
       <div className="flex items-center justify-center gap-5">
         <button
           onClick={() => !isPrevDisabled && setActiveMonth(prevMonth(activeMonthKey))}
