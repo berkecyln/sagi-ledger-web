@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route } from 'react-router-dom';
 import AuthGate from './components/AuthGate';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
@@ -16,6 +16,7 @@ export default function App() {
           <Route path="ledger" element={<Ledger />} />
           <Route path="template" element={<TemplateManager />} />
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthGate>
   );
