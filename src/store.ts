@@ -54,6 +54,7 @@ interface StoreState {
   status: LoadStatus;
   error: string | null;
   writeError: string | null;
+  applying: { done: number; total: number } | null;
   template: Transaction[];
   months: Record<string, Transaction[]>;
   activeMonthKey: string;
@@ -109,6 +110,7 @@ export const useStore = create<StoreState>()((set, get) => {
     status: "loading",
     error: null,
     writeError: null,
+    applying: null,
     template: [],
     months: {},
     activeMonthKey: todayKey(),
@@ -124,6 +126,7 @@ export const useStore = create<StoreState>()((set, get) => {
     },
 
     // Replaces the month, so old rows are removed before the template is written
+    // Every row is a separate write, so progress is reported while it runs
     applyTemplateToMonth: () => {
       const { activeMonthKey, template, months, accountColors } = get();
       const previous = months[activeMonthKey] ?? [];
@@ -133,18 +136,31 @@ export const useStore = create<StoreState>()((set, get) => {
         date: templateDateToFull(t.date, activeMonthKey),
       }));
 
+      const total = previous.length + seeded.length;
       set((s) => ({
         months: { ...s.months, [activeMonthKey]: seeded },
+        applying: { done: 0, total },
       }));
 
+      const step = () =>
+        set((s) => ({
+          applying: s.applying
+            ? { done: s.applying.done + 1, total: s.applying.total }
+            : null,
+        }));
+
       (async () => {
-        for (const tx of previous) await apiDeleteTransaction(tx.id);
+        for (const tx of previous) {
+          await apiDeleteTransaction(tx.id);
+          step();
+        }
         for (const tx of seeded) {
           await createTransaction(tx, accountColors[tx.account] ?? "");
+          step();
         }
-      })().catch(
-        rollback({ months: { ...months, [activeMonthKey]: previous } }),
-      );
+      })()
+        .catch(rollback({ months: { ...months, [activeMonthKey]: previous } }))
+        .finally(() => set({ applying: null }));
     },
 
     addTransaction: (tx) => {
@@ -349,7 +365,13 @@ export const useStore = create<StoreState>()((set, get) => {
 
     // Clear the data held for the previous user
     reset: () => {
-      set({ status: "loading", error: null, writeError: null, ...emptyData });
+      set({
+        status: "loading",
+        error: null,
+        writeError: null,
+        applying: null,
+        ...emptyData,
+      });
     },
   };
 });

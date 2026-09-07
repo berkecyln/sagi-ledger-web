@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, LayoutTemplate, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LayoutTemplate, Loader2, X } from 'lucide-react';
 import { useState } from 'react';
 import { useStore } from '../store';
 
@@ -15,7 +15,7 @@ function nextMonth(key: string): string {
 }
 
 export default function MonthBar() {
-  const { activeMonthKey, setActiveMonth, months, template, applyTemplateToMonth } = useStore();
+  const { activeMonthKey, setActiveMonth, months, template, applyTemplateToMonth, applying } = useStore();
   const [confirming, setConfirming] = useState(false);
 
   const [y, m] = activeMonthKey.split('-').map(Number);
@@ -55,7 +55,12 @@ export default function MonthBar() {
 
       {template.length > 0 && (
         <div className="absolute right-4 top-1/2 -translate-y-1/2">
-          {confirming ? (
+          {applying ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-ink-muted">
+              <Loader2 size={14} className="animate-spin text-accent" />
+              Saving {applying.done} of {applying.total}
+            </div>
+          ) : confirming ? (
             <div className="flex items-center gap-2">
               <span className="text-xs text-ink-faint">Overwrites this month.</span>
               <button
