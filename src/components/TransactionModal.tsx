@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { X, Check } from 'lucide-react';
 import { useStore } from '../store';
-import { getUniqueAccounts } from '../utils/aggregations';
 import { ACCOUNT_PALETTE } from '../utils/colors';
 import CreatableSelect from './CreatableSelect';
 import type { Transaction, TransactionType } from '../types';
@@ -18,7 +17,7 @@ function todayStr(): string {
 }
 
 export default function TransactionModal({ type, onClose, editTransaction, isTemplate = false }: Props) {
-  const { months, accountColors, descriptions, setAccountColor, addDescription, deleteDescription, addTransaction, updateTransaction, addTemplateItem, updateTemplateItem } = useStore();
+  const { accountColors, descriptions, setAccountColor, addDescription, deleteDescription, addTransaction, updateTransaction, addTemplateItem, updateTemplateItem } = useStore();
 
   const isEdit = !!editTransaction;
 
@@ -28,7 +27,8 @@ export default function TransactionModal({ type, onClose, editTransaction, isTem
   const [description, setDescription] = useState(editTransaction?.description ?? '');
   const [account, setAccount] = useState(editTransaction?.account ?? '');
 
-  const allAccounts = getUniqueAccounts(months);
+  // Every known account, including ones with no transactions yet
+  const allAccounts = Object.keys(accountColors).sort();
 
   const currentColor = account ? accountColors[account] : undefined;
 

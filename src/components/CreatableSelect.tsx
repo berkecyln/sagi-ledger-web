@@ -7,7 +7,7 @@ interface Props {
   options: string[];
   placeholder?: string;
   id?: string;
-  onCreate?: (val: string) => void; // called only when the Create row is clicked
+  onCreate?: (val: string) => void; // adds the Create row, called when it is clicked
   onDelete?: (val: string) => void; // enables the cross on saved descriptions
 }
 
@@ -69,7 +69,7 @@ export default function CreatableSelect({ value, onChange, options, placeholder,
         }}
         onFocus={() => setOpen(true)}
       />
-      {open && (filtered.length > 0 || (query.trim() && !options.includes(query.trim()))) && (
+      {open && (filtered.length > 0 || (onCreate && query.trim() && !options.includes(query.trim()))) && (
         <ul className="absolute z-50 w-full mt-1 bg-card border border-stroke rounded shadow-lg max-h-40 overflow-y-auto">
           {filtered.map((o) => (
             <li
@@ -91,7 +91,7 @@ export default function CreatableSelect({ value, onChange, options, placeholder,
               )}
             </li>
           ))}
-          {query.trim() && !options.includes(query.trim()) && (
+          {onCreate && query.trim() && !options.includes(query.trim()) && (
             <li
               onMouseDown={() => create(query)}
               className="px-3 py-2 text-sm cursor-pointer hover:bg-thead text-accent italic"
