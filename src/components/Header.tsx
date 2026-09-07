@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Moon, Sun } from 'lucide-react';
+import { LogOut } from 'lucide-react';
+import { logout } from '../api';
+import ThemeToggle from './ThemeToggle';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-1 rounded text-sm font-medium transition-colors ${
@@ -9,20 +10,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
       : 'text-ink-muted hover:bg-hover hover:text-ink'
   }`;
 
-function useDarkMode() {
-  const [dark, setDark] = useState(() => localStorage.getItem('sagi-theme') === 'dark');
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-    localStorage.setItem('sagi-theme', dark ? 'dark' : 'light');
-  }, [dark]);
-
-  return [dark, setDark] as const;
-}
-
 export default function Header() {
-  const [dark, setDark] = useDarkMode();
-
   return (
     <header className="bg-card border-b border-stroke px-6 py-3 flex items-center justify-between">
       <span className="font-semibold text-accent text-lg tracking-tight">Sagi</span>
@@ -32,13 +20,14 @@ export default function Header() {
         <NavLink to="/ledger" className={navLinkClass}>Ledger</NavLink>
         <NavLink to="/template" className={navLinkClass}>Template</NavLink>
         <div className="w-px h-4 bg-stroke mx-1" />
+        <ThemeToggle />
         <button
-          onClick={() => setDark((d) => !d)}
+          onClick={logout}
           className="p-1.5 rounded text-ink-muted hover:text-ink hover:bg-hover transition-colors"
-          aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={dark ? 'Light mode' : 'Dark mode'}
+          aria-label="Sign out"
+          title="Sign out"
         >
-          {dark ? <Sun size={16} /> : <Moon size={16} />}
+          <LogOut size={16} />
         </button>
       </nav>
     </header>
