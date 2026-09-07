@@ -8,7 +8,12 @@
 export { pb } from "./client";
 export { newId, isValidId } from "./ids";
 export { describeError, isRateLimited, statusOf } from "./errors";
-export { throttledWrite, createThrottle } from "./throttle";
+export {
+  throttledWrite,
+  createThrottle,
+  pendingWrites,
+  subscribePendingWrites,
+} from "./throttle";
 export {
   login,
   signup,

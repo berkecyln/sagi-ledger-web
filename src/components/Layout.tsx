@@ -3,6 +3,7 @@ import Header from './Header';
 import MonthBar from './MonthBar';
 import CumulativeFooter from './CumulativeFooter';
 import ErrorBanner from './ErrorBanner';
+import UnsavedGuard from './UnsavedGuard';
 
 export default function Layout() {
   return (
@@ -14,6 +15,7 @@ export default function Layout() {
       </main>
       <CumulativeFooter />
       <ErrorBanner />
+      <UnsavedGuard />
     </div>
   );
 }

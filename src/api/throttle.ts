@@ -23,6 +23,28 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Writes queued but not yet finished, across every queue
+let pending = 0;
+const listeners = new Set<() => void>();
+
+function setPending(next: number): void {
+  pending = next;
+  for (const listener of listeners) listener();
+}
+
+// Return how many writes are still in flight
+export function pendingWrites(): number {
+  return pending;
+}
+
+// Subscribe to the in flight count, returns an unsubscribe
+export function subscribePendingWrites(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
 // Create a queue that runs calls one at a time
 export function createThrottle({ limit, windowMs, retries = 4 }: ThrottleOptions) {
   const recent: number[] = [];
@@ -44,6 +66,7 @@ export function createThrottle({ limit, windowMs, retries = 4 }: ThrottleOptions
 
   // Queue a call and retry it if rate limited
   return function run<T>(call: () => Promise<T>): Promise<T> {
+    setPending(pending + 1);
     const result = chain.then(async () => {
       for (let attempt = 0; ; attempt++) {
         await takeSlot();
@@ -58,6 +81,10 @@ export function createThrottle({ limit, windowMs, retries = 4 }: ThrottleOptions
     });
     // A failed call does not stall the queue behind it
     chain = result.catch(() => undefined);
+    result.then(
+      () => setPending(pending - 1),
+      () => setPending(pending - 1),
+    );
     return result;
   };
 }
