@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import MonthBar from './MonthBar';
 import CumulativeFooter from './CumulativeFooter';
+import ErrorBanner from './ErrorBanner';
 
 export default function Layout() {
   return (
@@ -12,6 +13,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <CumulativeFooter />
+      <ErrorBanner />
     </div>
   );
 }

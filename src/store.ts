@@ -1,5 +1,21 @@
 import { create } from "zustand";
-import { newId, type HydratedState } from "./api";
+import {
+  createDescription,
+  createTemplateItem,
+  createTransaction,
+  deleteAccount as apiDeleteAccount,
+  deleteDescription as apiDeleteDescription,
+  deleteTemplateItem as apiDeleteTemplateItem,
+  deleteTransaction as apiDeleteTransaction,
+  describeError,
+  ensureAccount,
+  accountIdFor,
+  newId,
+  updateAccount,
+  updateTemplateItem as apiUpdateTemplateItem,
+  updateTransaction as apiUpdateTransaction,
+  type HydratedState,
+} from "./api";
 import type { Transaction, TransactionType } from "./types";
 import { getNextColor } from "./utils/colors";
 import { isAccountInUse } from "./utils/aggregations";
@@ -37,6 +53,7 @@ type LoadStatus = "loading" | "ready" | "error";
 interface StoreState {
   status: LoadStatus;
   error: string | null;
+  writeError: string | null;
   template: Transaction[];
   months: Record<string, Transaction[]>;
   activeMonthKey: string;
@@ -64,6 +81,7 @@ interface StoreState {
   startLoading: () => void;
   hydrate: (data: HydratedState) => void;
   failLoading: (message: string) => void;
+  clearWriteError: () => void;
   reset: () => void;
 }
 
@@ -75,180 +93,263 @@ const emptyData = {
   descriptions: { INCOME: [], EXPENSE: [] } as DescriptionLists,
 };
 
-export const useStore = create<StoreState>()((set, get) => ({
-  status: "loading",
-  error: null,
-  template: [],
-  months: {},
-  activeMonthKey: todayKey(),
-  accountColors: {},
-  baseAccountBalances: {},
-  descriptions: { INCOME: [], EXPENSE: [] },
+export const useStore = create<StoreState>()((set, get) => {
+  // Undo an optimistic change and show what went wrong
+  const rollback = (undo: Partial<StoreState>) => (error: unknown) => {
+    set({ ...undo, writeError: describeError(error) });
+  };
 
-  setActiveMonth: (key) => {
-    set((s) => ({
-      activeMonthKey: key,
-      months: s.months[key] ? s.months : { ...s.months, [key]: [] },
-    }));
-  },
+  // Create the account row on first touch, update it afterwards
+  const saveAccount = (name: string, color: string, baseBalance: number) =>
+    accountIdFor(name)
+      ? updateAccount(name, { color, baseBalance })
+      : ensureAccount(name, color, baseBalance).then(() => undefined);
 
-  applyTemplateToMonth: () => {
-    const { activeMonthKey, template } = get();
-    const seeded = template.map((t) => ({
-      ...t,
-      id: generateId(),
-      date: templateDateToFull(t.date, activeMonthKey),
-    }));
-    set((s) => ({
-      months: { ...s.months, [activeMonthKey]: seeded },
-    }));
-  },
+  return {
+    status: "loading",
+    error: null,
+    writeError: null,
+    template: [],
+    months: {},
+    activeMonthKey: todayKey(),
+    accountColors: {},
+    baseAccountBalances: {},
+    descriptions: { INCOME: [], EXPENSE: [] },
 
-  addTransaction: (tx) => {
-    const { activeMonthKey, months, accountColors } = get();
-    const newTx: Transaction = { ...tx, id: generateId() };
-    const current = months[activeMonthKey] ?? [];
-    const updatedTransactions = [...current, newTx];
-    set((s) => ({
-      months: { ...s.months, [activeMonthKey]: updatedTransactions },
-      accountColors: ensureAccountColor(tx.account, accountColors),
-    }));
-  },
+    setActiveMonth: (key) => {
+      set((s) => ({
+        activeMonthKey: key,
+        months: s.months[key] ? s.months : { ...s.months, [key]: [] },
+      }));
+    },
 
-  updateTransaction: (id, updates) => {
-    const { activeMonthKey, months, accountColors } = get();
-    const current = months[activeMonthKey] ?? [];
-    const updatedTransactions = current.map((t) =>
-      t.id === id ? { ...t, ...updates } : t,
-    );
-    set((s) => ({
-      months: {
-        ...s.months,
-        [activeMonthKey]: updatedTransactions,
-      },
-      accountColors: ensureAccountColor(updates.account, accountColors),
-    }));
-  },
+    // Replaces the month, so old rows are removed before the template is written
+    applyTemplateToMonth: () => {
+      const { activeMonthKey, template, months, accountColors } = get();
+      const previous = months[activeMonthKey] ?? [];
+      const seeded = template.map((t) => ({
+        ...t,
+        id: generateId(),
+        date: templateDateToFull(t.date, activeMonthKey),
+      }));
 
-  deleteTransaction: (id) => {
-    const { activeMonthKey, months } = get();
-    const current = months[activeMonthKey] ?? [];
-    const updatedTransactions = current.filter((t) => t.id !== id);
-    set((s) => ({
-      months: {
-        ...s.months,
-        [activeMonthKey]: updatedTransactions,
-      },
-    }));
-  },
+      set((s) => ({
+        months: { ...s.months, [activeMonthKey]: seeded },
+      }));
 
-  addTemplateItem: (tx) => {
-    const { accountColors } = get();
-    const newTx: Transaction = {
-      ...tx,
-      id: generateId(),
-      type: tx.type as TransactionType,
-    };
-    set((s) => ({
-      template: [...s.template, newTx],
-      accountColors: ensureAccountColor(tx.account, accountColors),
-    }));
-  },
+      (async () => {
+        for (const tx of previous) await apiDeleteTransaction(tx.id);
+        for (const tx of seeded) {
+          await createTransaction(tx, accountColors[tx.account] ?? "");
+        }
+      })().catch(
+        rollback({ months: { ...months, [activeMonthKey]: previous } }),
+      );
+    },
 
-  deleteTemplateItem: (id) => {
-    set((s) => ({ template: s.template.filter((t) => t.id !== id) }));
-  },
+    addTransaction: (tx) => {
+      const { activeMonthKey, months, accountColors } = get();
+      const newTx: Transaction = { ...tx, id: generateId() };
+      const current = months[activeMonthKey] ?? [];
+      const colors = ensureAccountColor(tx.account, accountColors);
 
-  updateTemplateItem: (id, updates) => {
-    const { accountColors } = get();
-    set((s) => ({
-      template: s.template.map((t) =>
-        t.id === id ? { ...t, ...updates } : t,
-      ),
-      accountColors: updates.account
+      set((s) => ({
+        months: { ...s.months, [activeMonthKey]: [...current, newTx] },
+        accountColors: colors,
+      }));
+
+      createTransaction(newTx, colors[tx.account]).catch(
+        rollback({ months: { ...months, [activeMonthKey]: current } }),
+      );
+    },
+
+    updateTransaction: (id, updates) => {
+      const { activeMonthKey, months, accountColors } = get();
+      const current = months[activeMonthKey] ?? [];
+      const colors = ensureAccountColor(updates.account, accountColors);
+
+      set((s) => ({
+        months: {
+          ...s.months,
+          [activeMonthKey]: current.map((t) =>
+            t.id === id ? { ...t, ...updates } : t,
+          ),
+        },
+        accountColors: colors,
+      }));
+
+      apiUpdateTransaction(id, updates, colors[updates.account]).catch(
+        rollback({ months: { ...months, [activeMonthKey]: current } }),
+      );
+    },
+
+    deleteTransaction: (id) => {
+      const { activeMonthKey, months } = get();
+      const current = months[activeMonthKey] ?? [];
+
+      set((s) => ({
+        months: {
+          ...s.months,
+          [activeMonthKey]: current.filter((t) => t.id !== id),
+        },
+      }));
+
+      apiDeleteTransaction(id).catch(
+        rollback({ months: { ...months, [activeMonthKey]: current } }),
+      );
+    },
+
+    addTemplateItem: (tx) => {
+      const { template, accountColors } = get();
+      const newTx: Transaction = { ...tx, id: generateId() };
+      const colors = ensureAccountColor(tx.account, accountColors);
+
+      set(() => ({
+        template: [...template, newTx],
+        accountColors: colors,
+      }));
+
+      createTemplateItem(newTx, colors[tx.account]).catch(
+        rollback({ template }),
+      );
+    },
+
+    deleteTemplateItem: (id) => {
+      const { template } = get();
+
+      set(() => ({ template: template.filter((t) => t.id !== id) }));
+
+      apiDeleteTemplateItem(id).catch(rollback({ template }));
+    },
+
+    updateTemplateItem: (id, updates) => {
+      const { template, accountColors } = get();
+      const existing = template.find((t) => t.id === id);
+      if (!existing) return;
+
+      const merged = { ...existing, ...updates };
+      const colors = updates.account
         ? ensureAccountColor(updates.account, accountColors)
-        : s.accountColors,
-    }));
-  },
+        : accountColors;
 
-  setAccountColor: (account, color) => {
-    set((s) => ({
-      accountColors: { ...s.accountColors, [account]: color },
-    }));
-  },
+      set(() => ({
+        template: template.map((t) => (t.id === id ? merged : t)),
+        accountColors: colors,
+      }));
 
-  setBaseAccountBalance: (account, amount) => {
-    set((s) => ({
-      baseAccountBalances: { ...s.baseAccountBalances, [account]: amount },
-    }));
-  },
+      apiUpdateTemplateItem(id, merged, colors[merged.account]).catch(
+        rollback({ template }),
+      );
+    },
 
-  // Delete account, blocked while any transaction or template item still uses it
-  deleteAccount: (account) => {
-    const { months, template } = get();
-    if (isAccountInUse(account, months, template)) return;
+    setAccountColor: (account, color) => {
+      const { accountColors, baseAccountBalances } = get();
 
-    set((s) => {
-      const accountColors = { ...s.accountColors };
-      const baseAccountBalances = { ...s.baseAccountBalances };
-      delete accountColors[account];
-      delete baseAccountBalances[account];
+      set((s) => ({
+        accountColors: { ...s.accountColors, [account]: color },
+      }));
 
-      return { accountColors, baseAccountBalances };
-    });
-  },
+      saveAccount(account, color, baseAccountBalances[account] ?? 0).catch(
+        rollback({ accountColors }),
+      );
+    },
 
-  // Add label to the suggestion list of its type
-  addDescription: (type, label) => {
-    const clean = label.trim();
-    if (!clean) return;
-    set((s) =>
-      s.descriptions[type].includes(clean)
-        ? s
-        : {
-            descriptions: {
-              ...s.descriptions,
-              [type]: [...s.descriptions[type], clean].sort(),
-            },
-          },
-    );
-  },
+    setBaseAccountBalance: (account, amount) => {
+      const { accountColors, baseAccountBalances } = get();
+      const colors = ensureAccountColor(account, accountColors);
 
-  // Removes the label from the suggestion list only, transactions keep descriptions intact.
-  deleteDescription: (type, label) => {
-    set((s) => ({
-      descriptions: {
-        ...s.descriptions,
-        [type]: s.descriptions[type].filter((d) => d !== label),
-      },
-    }));
-  },
+      set((s) => ({
+        accountColors: colors,
+        baseAccountBalances: { ...s.baseAccountBalances, [account]: amount },
+      }));
 
-  // Mark a fetch as running
-  startLoading: () => {
-    set({ status: "loading", error: null });
-  },
+      saveAccount(account, colors[account], amount).catch(
+        rollback({ accountColors, baseAccountBalances }),
+      );
+    },
 
-  // Replace every slice with what the server returned
-  hydrate: (data) => {
-    set({
-      status: "ready",
-      error: null,
-      template: data.template,
-      months: data.months,
-      accountColors: data.accountColors,
-      baseAccountBalances: data.baseAccountBalances,
-      descriptions: data.descriptions,
-    });
-  },
+    // Delete account, blocked while any transaction or template item still uses it
+    deleteAccount: (account) => {
+      const { months, template, accountColors, baseAccountBalances } = get();
+      if (isAccountInUse(account, months, template)) return;
 
-  // Mark a fetch as failed
-  failLoading: (message) => {
-    set({ status: "error", error: message });
-  },
+      set((s) => {
+        const colors = { ...s.accountColors };
+        const balances = { ...s.baseAccountBalances };
+        delete colors[account];
+        delete balances[account];
+        return { accountColors: colors, baseAccountBalances: balances };
+      });
 
-  // Clear the data held for the previous user
-  reset: () => {
-    set({ status: "loading", error: null, ...emptyData });
-  },
-}));
+      apiDeleteAccount(account).catch(
+        rollback({ accountColors, baseAccountBalances }),
+      );
+    },
+
+    // Add label to the suggestion list of its type
+    addDescription: (type, label) => {
+      const clean = label.trim();
+      if (!clean) return;
+
+      const { descriptions } = get();
+      if (descriptions[type].includes(clean)) return;
+
+      set((s) => ({
+        descriptions: {
+          ...s.descriptions,
+          [type]: [...s.descriptions[type], clean].sort(),
+        },
+      }));
+
+      createDescription(type, clean).catch(rollback({ descriptions }));
+    },
+
+    // Removes the label from the suggestion list only, transactions keep descriptions intact.
+    deleteDescription: (type, label) => {
+      const { descriptions } = get();
+
+      set((s) => ({
+        descriptions: {
+          ...s.descriptions,
+          [type]: s.descriptions[type].filter((d) => d !== label),
+        },
+      }));
+
+      apiDeleteDescription(type, label).catch(rollback({ descriptions }));
+    },
+
+    // Mark a fetch as running
+    startLoading: () => {
+      set({ status: "loading", error: null });
+    },
+
+    // Replace every slice with what the server returned
+    hydrate: (data) => {
+      set({
+        status: "ready",
+        error: null,
+        writeError: null,
+        template: data.template,
+        months: data.months,
+        accountColors: data.accountColors,
+        baseAccountBalances: data.baseAccountBalances,
+        descriptions: data.descriptions,
+      });
+    },
+
+    // Mark a fetch as failed
+    failLoading: (message) => {
+      set({ status: "error", error: message });
+    },
+
+    // Dismiss the write error banner
+    clearWriteError: () => {
+      set({ writeError: null });
+    },
+
+    // Clear the data held for the previous user
+    reset: () => {
+      set({ status: "loading", error: null, writeError: null, ...emptyData });
+    },
+  };
+});
