@@ -81,21 +81,45 @@ export function readLegacyBlob(): LegacyBlob | null {
   }
 }
 
+const TYPES: TransactionType[] = ["INCOME", "EXPENSE"];
+
 // Flatten the two description shapes the app has used
 function legacyDescriptions(
   state: LegacyState,
 ): { type: TransactionType; label: string }[] {
   const source = state.descriptions;
-  if (!source) return [];
-  if (Array.isArray(source)) {
-    return source.flatMap((label) => [
-      { type: "INCOME" as TransactionType, label },
-      { type: "EXPENSE" as TransactionType, label },
-    ]);
+
+  // A curated list per type, take it as it stands
+  if (source && !Array.isArray(source)) {
+    return TYPES.flatMap((type) =>
+      (source[type] ?? []).map((label) => ({ type, label })),
+    );
   }
-  return (["INCOME", "EXPENSE"] as TransactionType[]).flatMap((type) =>
-    (source[type] ?? []).map((label) => ({ type, label })),
-  );
+
+  // One untyped list, rebuilt the way the app's own migration did
+  const lists: Record<TransactionType, string[]> = { INCOME: [], EXPENSE: [] };
+  const all = [
+    ...Object.values(state.months ?? {}).flat(),
+    ...(state.template ?? []),
+  ];
+
+  // Labels in use, grouped by the type they were used with
+  for (const tx of all) {
+    const label = tx.description?.trim();
+    if (label && !lists[tx.type].includes(label)) lists[tx.type].push(label);
+  }
+
+  // Labels created but never used carry no type, so keep them on both sides
+  for (const raw of source ?? []) {
+    const label = raw.trim();
+    if (!label) continue;
+    if (!lists.INCOME.includes(label) && !lists.EXPENSE.includes(label)) {
+      lists.INCOME.push(label);
+      lists.EXPENSE.push(label);
+    }
+  }
+
+  return TYPES.flatMap((type) => lists[type].map((label) => ({ type, label })));
 }
 
 // Every account named anywhere in the blob
@@ -130,11 +154,28 @@ export async function runImport(
   const plan = planImport(blob);
   const amount = (value: number) => (plan.toCents ? Math.round(value * 100) : value);
 
+  // Two source rows deriving to one id would silently drop a row
+  const rows = [
+    ...Object.values(blob.state.months ?? {}).flat(),
+    ...(blob.state.template ?? []),
+  ];
+  const derived = new Map<string, string>();
+  for (const row of rows) {
+    const id = legacyId(row.id);
+    const clash = derived.get(id);
+    if (clash && clash !== row.id) {
+      throw new Error(
+        `Two records share the derived id ${id} (${clash} and ${row.id}). Nothing was imported.`,
+      );
+    }
+    derived.set(id, row.id);
+  }
+
   // What the server already holds, so a re-run is safe
   const server = await loadAll();
   const haveAccount = new Set(Object.keys(server.accountColors));
   const haveLabel = new Set(
-    (["INCOME", "EXPENSE"] as TransactionType[]).flatMap((type) =>
+    TYPES.flatMap((type) =>
       server.descriptions[type].map((label) => `${type}|${label}`),
     ),
   );
