@@ -56,6 +56,7 @@ interface StoreState {
   writeError: string | null;
   applying: { done: number; total: number } | null;
   offerImport: boolean;
+  hasLegacy: boolean;
   template: Transaction[];
   months: Record<string, Transaction[]>;
   activeMonthKey: string;
@@ -85,6 +86,7 @@ interface StoreState {
   failLoading: (message: string) => void;
   clearWriteError: () => void;
   setOfferImport: (offer: boolean) => void;
+  setHasLegacy: (present: boolean) => void;
   reset: () => void;
 }
 
@@ -114,6 +116,7 @@ export const useStore = create<StoreState>()((set, get) => {
     writeError: null,
     applying: null,
     offerImport: false,
+    hasLegacy: false,
     template: [],
     months: {},
     activeMonthKey: todayKey(),
@@ -371,6 +374,11 @@ export const useStore = create<StoreState>()((set, get) => {
       set({ offerImport: offer });
     },
 
+    // Whether this browser still holds a pre-server ledger
+    setHasLegacy: (present) => {
+      set({ hasLegacy: present });
+    },
+
     // Clear the data held for the previous user
     reset: () => {
       set({
@@ -379,6 +387,7 @@ export const useStore = create<StoreState>()((set, get) => {
         writeError: null,
         applying: null,
         offerImport: false,
+        hasLegacy: false,
         ...emptyData,
       });
     },

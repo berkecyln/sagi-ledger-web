@@ -14,7 +14,7 @@ import {
   isEmpty,
   loadAll,
   onAuthChange,
-  readLegacyBlob,
+  hasLegacyBlob,
   resetAccountCache,
   type SessionUser,
 } from '../api';
@@ -66,9 +66,9 @@ export default function AuthGate({ children }: { children: ReactNode }) {
       const server = await loadAll();
       hydrate(server);
       // Nothing on the server yet, but this browser still holds the old ledger
-      useStore
-        .getState()
-        .setOfferImport(isEmpty(server) && readLegacyBlob() !== null);
+      const legacy = hasLegacyBlob();
+      useStore.getState().setHasLegacy(legacy);
+      useStore.getState().setOfferImport(isEmpty(server) && legacy);
     } catch (err) {
       failLoading(describeError(err));
     }

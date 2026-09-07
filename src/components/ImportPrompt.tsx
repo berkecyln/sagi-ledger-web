@@ -51,6 +51,7 @@ export default function ImportPrompt({ onClose }: { onClose: () => void }) {
       useStore.getState().hydrate(server);
       downloadLegacyBackup(blob);
       clearLegacyBlob();
+      useStore.getState().setHasLegacy(false);
       setResult(imported);
       setPhase('done');
     } catch (error) {
@@ -101,7 +102,7 @@ export default function ImportPrompt({ onClose }: { onClose: () => void }) {
                 <div className="h-full bg-accent transition-all duration-200" style={{ width: `${pct}%` }} />
               </div>
               <p className="text-xs text-ink-faint">
-                Writes are paced to stay under the server limit. Leave this open.
+                Please wait while your data is imported. Do not close the browser.
               </p>
             </>
           )}

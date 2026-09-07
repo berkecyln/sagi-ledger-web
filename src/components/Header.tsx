@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { DatabaseBackup, LogOut } from 'lucide-react';
-import { hasLegacyBlob, logout } from '../api';
+import { logout } from '../api';
 import ImportPrompt from './ImportPrompt';
 import ThemeToggle from './ThemeToggle';
+import { useStore } from '../store';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-1 rounded text-sm font-medium transition-colors ${
@@ -14,7 +15,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function Header() {
   const [importing, setImporting] = useState(false);
-  const hasLegacyData = hasLegacyBlob();
+  const hasLegacyData = useStore((s) => s.hasLegacy);
 
   return (
     <header className="bg-card border-b border-stroke px-6 py-3 flex items-center justify-between">
