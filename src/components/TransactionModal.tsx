@@ -22,7 +22,7 @@ export default function TransactionModal({ type, onClose, editTransaction, isTem
 
   const isEdit = !!editTransaction;
 
-  const [amount, setAmount] = useState(editTransaction ? String(editTransaction.amount) : '');
+  const [amount, setAmount] = useState(editTransaction ? String(editTransaction.amount / 100) : '');
   const [date, setDate] = useState(editTransaction?.date ?? todayStr());
   const [templateDay, setTemplateDay] = useState(isTemplate && editTransaction ? editTransaction.date : '');
   const [description, setDescription] = useState(editTransaction?.description ?? '');
@@ -34,14 +34,26 @@ export default function TransactionModal({ type, onClose, editTransaction, isTem
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!amount || !description || !account) return;
+    if (!description || !account) return;
+
+    const euros = parseFloat(amount);
+    if (isNaN(euros) || euros <= 0) return;
+    const cents = Math.round(euros * 100);
 
     if (isTemplate) {
-      const data = { type, amount: parseFloat(amount), description, account, date: templateDay };
-      isEdit && editTransaction ? updateTemplateItem(editTransaction.id, data) : addTemplateItem(data);
+      const data = { type, amount: cents, description, account, date: templateDay };
+      if (isEdit && editTransaction) {
+        updateTemplateItem(editTransaction.id, data);
+      } else {
+        addTemplateItem(data);
+      }
     } else {
-      const data = { type, amount: parseFloat(amount), description, account, date };
-      isEdit && editTransaction ? updateTransaction(editTransaction.id, data) : addTransaction(data);
+      const data = { type, amount: cents, description, account, date };
+      if (isEdit && editTransaction) {
+        updateTransaction(editTransaction.id, data);
+      } else {
+        addTransaction(data);
+      }
     }
     onClose();
   }
@@ -83,10 +95,10 @@ export default function TransactionModal({ type, onClose, editTransaction, isTem
           ) : (
             <div>
               <label htmlFor="templateDay" className="block text-xs font-medium text-ink-muted mb-1">
-                Day of month <span className="text-ink-ghost">(optional, 1–28)</span>
+                Day of month <span className="text-ink-ghost">(optional, 1-31)</span>
               </label>
               <input
-                id="templateDay" type="number" min="1" max="28" autoComplete="off"
+                id="templateDay" type="number" min="1" max="31" autoComplete="off"
                 value={templateDay} onChange={(e) => setTemplateDay(e.target.value)}
                 className="w-full bg-subtle border border-stroke rounded px-3 py-2 text-sm text-ink placeholder:text-ink-ghost focus:outline-none focus:border-accent"
                 placeholder="Leave blank for 1st of month"

@@ -13,9 +13,12 @@ function generateId(): string {
 }
 
 function templateDateToFull(templateDate: string, monthKey: string): string {
-  const day = /^\d{1,2}$/.test(templateDate.trim())
-    ? Math.min(Math.max(parseInt(templateDate), 1), 28)
+  const requested = /^\d{1,2}$/.test(templateDate.trim())
+    ? parseInt(templateDate)
     : 1;
+  const [year, month] = monthKey.split("-").map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const day = Math.min(Math.max(requested, 1), daysInMonth);
   return `${monthKey}-${String(day).padStart(2, "0")}`;
 }
 
@@ -27,25 +30,28 @@ function ensureAccountColor(
   return { ...colors, [account]: getNextColor(colors) };
 }
 
-function recalculateMonthlyBalances(
-  transactions: Transaction[],
-): Record<string, number> {
-  const monthlyBalances: Record<string, number> = {};
-  for (const tx of transactions) {
-    monthlyBalances[tx.account] =
-      (monthlyBalances[tx.account] ?? 0) +
-      (tx.type === "INCOME" ? tx.amount : -tx.amount);
-  }
-  return monthlyBalances;
-}
-
 type DescriptionLists = Record<TransactionType, string[]>;
 
 type PersistedState = {
   template?: Transaction[];
   months?: Record<string, Transaction[]>;
+  baseAccountBalances?: Record<string, number>;
   descriptions?: string[] | DescriptionLists;
 };
+
+// Euro floats to integer cents
+function amountsToCents(state: PersistedState): void {
+  for (const tx of [
+    ...Object.values(state.months ?? {}).flat(),
+    ...(state.template ?? []),
+  ]) {
+    tx.amount = Math.round(tx.amount * 100);
+  }
+  const balances = state.baseAccountBalances ?? {};
+  for (const [account, value] of Object.entries(balances)) {
+    balances[account] = Math.round(value * 100);
+  }
+}
 
 // Description list migration from old logic
 function collectDescriptions(
@@ -84,7 +90,6 @@ interface StoreState {
   months: Record<string, Transaction[]>;
   activeMonthKey: string;
   accountColors: Record<string, string>; // account name → hex color
-  monthlyBalances: Record<string, Record<string, number>>;
   baseAccountBalances: Record<string, number>;
   descriptions: DescriptionLists; // user-curated labels per type, only grow on explicit create
 
@@ -113,7 +118,6 @@ export const useStore = create<StoreState>()(
       months: {},
       activeMonthKey: todayKey(),
       accountColors: {},
-      monthlyBalances: {},
       baseAccountBalances: {},
       descriptions: { INCOME: [], EXPENSE: [] },
 
@@ -133,10 +137,6 @@ export const useStore = create<StoreState>()(
         }));
         set((s) => ({
           months: { ...s.months, [activeMonthKey]: seeded },
-          monthlyBalances: {
-            ...s.monthlyBalances,
-            [activeMonthKey]: recalculateMonthlyBalances(seeded),
-          },
         }));
       },
 
@@ -148,10 +148,6 @@ export const useStore = create<StoreState>()(
         set((s) => ({
           months: { ...s.months, [activeMonthKey]: updatedTransactions },
           accountColors: ensureAccountColor(tx.account, accountColors),
-          monthlyBalances: {
-            ...s.monthlyBalances,
-            [activeMonthKey]: recalculateMonthlyBalances(updatedTransactions),
-          },
         }));
       },
 
@@ -167,10 +163,6 @@ export const useStore = create<StoreState>()(
             [activeMonthKey]: updatedTransactions,
           },
           accountColors: ensureAccountColor(updates.account, accountColors),
-          monthlyBalances: {
-            ...s.monthlyBalances,
-            [activeMonthKey]: recalculateMonthlyBalances(updatedTransactions),
-          },
         }));
       },
 
@@ -182,10 +174,6 @@ export const useStore = create<StoreState>()(
           months: {
             ...s.months,
             [activeMonthKey]: updatedTransactions,
-          },
-          monthlyBalances: {
-            ...s.monthlyBalances,
-            [activeMonthKey]: recalculateMonthlyBalances(updatedTransactions),
           },
         }));
       },
@@ -242,15 +230,7 @@ export const useStore = create<StoreState>()(
           delete accountColors[account];
           delete baseAccountBalances[account];
 
-          // Drop stale cache entries so no chip survives in the footer
-          const monthlyBalances: Record<string, Record<string, number>> = {};
-          for (const [key, balances] of Object.entries(s.monthlyBalances)) {
-            const month = { ...balances };
-            delete month[account];
-            monthlyBalances[key] = month;
-          }
-
-          return { accountColors, baseAccountBalances, monthlyBalances };
+          return { accountColors, baseAccountBalances };
         });
       },
 
@@ -282,12 +262,11 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: "sagi-storage",
-      version: 2,
+      version: 3,
       partialize: (s) => ({
         template: s.template,
         months: s.months,
         accountColors: s.accountColors,
-        monthlyBalances: s.monthlyBalances,
         baseAccountBalances: s.baseAccountBalances,
         descriptions: s.descriptions,
       }),
@@ -299,6 +278,10 @@ export const useStore = create<StoreState>()(
             ? state.descriptions
             : [];
           state.descriptions = collectDescriptions(state, legacy);
+        }
+        // Amounts moved to integer cents
+        if (version < 3) {
+          amountsToCents(state);
         }
         return state;
       },

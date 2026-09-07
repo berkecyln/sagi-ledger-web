@@ -92,6 +92,7 @@ export function isAccountInUse(
   return all.some((t) => t.account === account);
 }
 
+// Amounts are integer cents
 export function formatEuro(amount: number): string {
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount / 100);
 }

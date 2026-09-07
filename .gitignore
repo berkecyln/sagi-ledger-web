@@ -25,3 +25,6 @@ CLAUDE.md
 *.njsproj
 *.sln
 *.sw?
+
+# Private notes, not for the repo
+docs/private/

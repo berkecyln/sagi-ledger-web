@@ -24,7 +24,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
     for (const acc of accounts) {
       initial[acc] =
         baseAccountBalances[acc] !== undefined
-          ? String(baseAccountBalances[acc])
+          ? String(baseAccountBalances[acc] / 100)
           : "";
     }
     return initial;
@@ -59,7 +59,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
     for (const [account, value] of Object.entries(balances)) {
       const num = parseFloat(value);
       if (!isNaN(num)) {
-        setBaseAccountBalance(account, num);
+        setBaseAccountBalance(account, Math.round(num * 100));
       } else if (value === "") {
         setBaseAccountBalance(account, 0); // Default to 0 if cleared
       }
@@ -71,7 +71,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
       if (!name) continue;
 
       const num = parseFloat(acc.amount);
-      const val = !isNaN(num) ? num : 0;
+      const val = !isNaN(num) ? Math.round(num * 100) : 0;
       
       setBaseAccountBalance(name, val);
       

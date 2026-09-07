@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { useStore } from "../store";
-import { formatEuro } from "../utils/aggregations";
+import { formatEuro, getAllTimeBalanceByAccount } from "../utils/aggregations";
 import { SettingsIcon } from "lucide-react";
 import BaseBalanceModal from "./BaseBalanceModal";
 
 export default function CumulativeFooter() {
-  const monthlyBalances = useStore((state) => state.monthlyBalances);
+  const months = useStore((state) => state.months);
   const accountColors = useStore((state) => state.accountColors);
   const baseAccountBalances = useStore((state) => state.baseAccountBalances);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,14 +18,12 @@ export default function CumulativeFooter() {
     }
 
     // Monthly activity on top
-    for (const month of Object.values(monthlyBalances)) {
-      for (const [account, amount] of Object.entries(month)) {
-        totals[account] = (totals[account] ?? 0) + amount;
-      }
+    for (const { account, balance } of getAllTimeBalanceByAccount(months)) {
+      totals[account] = (totals[account] ?? 0) + balance;
     }
 
     return Object.entries(totals).sort((a, b) => b[1] - a[1]);
-  }, [monthlyBalances, baseAccountBalances, accountColors]);
+  }, [months, baseAccountBalances, accountColors]);
 
   if (activeBalances.length === 0) return null;
 
