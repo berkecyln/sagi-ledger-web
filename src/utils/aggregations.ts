@@ -108,3 +108,16 @@ export function parseEuro(input: string): number | null {
 export function toEuroInput(cents: number): string {
   return (cents / 100).toFixed(2).replace('.', ',');
 }
+
+// Search for a transaction by description, account or amount.
+// Returns true if matches any of three criteria, else false.  
+export function matchesSearch(tx: Transaction, query: string): boolean {
+  const text = query.trim().toLowerCase();
+  if (!text) return true;
+  const amountText = text.replace('.', ','); // amounts are compared in the 12,50 form
+  return (
+    tx.description.toLowerCase().includes(text) ||
+    tx.account.toLowerCase().includes(text) ||
+    toEuroInput(tx.amount).includes(amountText)
+  );
+}
