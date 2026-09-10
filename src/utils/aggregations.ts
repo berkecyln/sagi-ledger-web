@@ -96,3 +96,15 @@ export function isAccountInUse(
 export function formatEuro(amount: number): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount / 100);
 }
+
+// Parse a typed amount to cents, null when invalid
+export function parseEuro(input: string): number | null {
+  const normalized = input.trim().replace(',', '.');
+  if (!/^-?\d+(\.\d{1,2})?$/.test(normalized)) return null;
+  return Math.round(parseFloat(normalized) * 100);
+}
+
+// Format cents for an editable amount field
+export function toEuroInput(cents: number): string {
+  return (cents / 100).toFixed(2).replace('.', ',');
+}

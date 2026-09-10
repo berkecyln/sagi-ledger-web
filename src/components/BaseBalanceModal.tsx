@@ -2,7 +2,7 @@ import { useState } from "react";
 import { X, Save, Plus } from "lucide-react";
 import { useStore } from "../store";
 import { getNextColor } from "../utils/colors";
-import { isAccountInUse } from "../utils/aggregations";
+import { isAccountInUse, parseEuro, toEuroInput } from "../utils/aggregations";
 
 interface Props {
   onClose: () => void;
@@ -24,7 +24,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
     for (const acc of accounts) {
       initial[acc] =
         baseAccountBalances[acc] !== undefined
-          ? String(baseAccountBalances[acc] / 100)
+          ? toEuroInput(baseAccountBalances[acc])
           : "";
     }
     return initial;
@@ -54,13 +54,13 @@ export default function BaseBalanceModal({ onClose }: Props) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    
+
     // Save existing accounts
     for (const [account, value] of Object.entries(balances)) {
-      const num = parseFloat(value);
-      if (!isNaN(num)) {
-        setBaseAccountBalance(account, Math.round(num * 100));
-      } else if (value === "") {
+      const cents = parseEuro(value);
+      if (cents !== null) {
+        setBaseAccountBalance(account, cents);
+      } else if (value.trim() === "") {
         setBaseAccountBalance(account, 0); // Default to 0 if cleared
       }
     }
@@ -70,11 +70,8 @@ export default function BaseBalanceModal({ onClose }: Props) {
       const name = acc.name.trim();
       if (!name) continue;
 
-      const num = parseFloat(acc.amount);
-      const val = !isNaN(num) ? Math.round(num * 100) : 0;
-      
-      setBaseAccountBalance(name, val);
-      
+      setBaseAccountBalance(name, parseEuro(acc.amount) ?? 0);
+
       if (!accountColors[name]) {
         setAccountColor(name, getNextColor(accountColors));
       }
@@ -137,15 +134,15 @@ export default function BaseBalanceModal({ onClose }: Props) {
                       €
                     </span>
                     <input
-                      type="number"
-                      step="0.01"
+                      type="text"
+                      inputMode="decimal"
                       autoComplete="off"
                       value={balances[account] || ""}
                       onChange={(e) =>
                         setBalances({ ...balances, [account]: e.target.value })
                       }
                       className="w-full bg-background border border-stroke rounded pl-6 pr-2 py-1.5 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent/50"
-                      placeholder="0.00"
+                      placeholder="0,00"
                     />
                   </div>
                   {/* Delete account */}
@@ -194,8 +191,8 @@ export default function BaseBalanceModal({ onClose }: Props) {
                     €
                   </span>
                   <input
-                    type="number"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
                     autoComplete="off"
                     value={acc.amount}
                     onChange={(e) => {
@@ -204,7 +201,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
                       setNewAccounts(updated);
                     }}
                     className="w-full bg-background border border-stroke rounded pl-6 pr-2 py-1.5 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent/50"
-                    placeholder="0.00"
+                    placeholder="0,00"
                   />
                 </div>
                 <button
