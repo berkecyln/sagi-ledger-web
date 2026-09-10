@@ -26,5 +26,4 @@ CLAUDE.md
 *.sln
 *.sw?
 
-# Private notes, not for the repo
-docs/private/
+dev/

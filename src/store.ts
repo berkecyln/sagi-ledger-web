@@ -28,7 +28,8 @@ function generateId(): string {
   return newId();
 }
 
-function templateDateToFull(templateDate: string, monthKey: string): string {
+// Expand a template day to a date in the month, clamped to its length
+export function templateDateToFull(templateDate: string, monthKey: string): string {
   const requested = /^\d{1,2}$/.test(templateDate.trim())
     ? parseInt(templateDate)
     : 1;
