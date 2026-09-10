@@ -43,7 +43,7 @@ export default function ExpenseProgressBars({ transactions }: Props) {
             <div className="w-full bg-hover rounded-full h-2.5 overflow-hidden">
               <div
                 className="h-2.5 rounded-full transition-all"
-                style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: barColor + 'cc' }}
+                style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: barColor }}
               />
             </div>
           </div>
