@@ -6,14 +6,17 @@
  *
  */
 
-import { Outlet } from 'react-router-dom';
+import { Outlet, useMatch } from 'react-router-dom';
 import Header from './Header';
 import MonthBar from './MonthBar';
 import CumulativeFooter from './CumulativeFooter';
+import AddActionButtons from './AddActionButtons';
 import ErrorBanner from './ErrorBanner';
 import UnsavedGuard from './UnsavedGuard';
 
 export default function Layout() {
+  const onDashboard = useMatch('/');
+
   return (
     <div className="min-h-dvh flex flex-col bg-page md:h-dvh md:overflow-hidden">
       <Header />
@@ -22,6 +25,8 @@ export default function Layout() {
         <Outlet />
       </main>
       <CumulativeFooter />
+      {/* On phone add buttons are fixed to the bottom */}
+      {onDashboard && <AddActionButtons />}
       <ErrorBanner />
       <UnsavedGuard />
     </div>

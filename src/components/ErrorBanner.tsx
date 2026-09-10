@@ -15,7 +15,7 @@ export default function ErrorBanner() {
   if (!writeError) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-4">
+    <div className="fixed bottom-24 md:bottom-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-4">
       <div className="flex items-start gap-2 bg-card border border-danger rounded-lg shadow-lg px-4 py-3">
         <AlertTriangle size={16} className="text-danger flex-shrink-0 mt-0.5" />
         <div className="flex-1 text-sm text-ink">

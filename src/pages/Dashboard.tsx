@@ -1,3 +1,12 @@
+/**
+ * Dashboard
+ *
+ * Month overview with an income and an expense column.
+ * On phones only the totals and bars are visible, add Income and add Expense buttons
+ * are fixed to the bottom of the screen via AddActionButtons.
+ *
+ */
+
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useStore } from "../store";
@@ -33,20 +42,25 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-0 flex-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-0 flex-1 content-start md:content-normal">
         {/* Income Column */}
         <div className="border border-stroke rounded-lg overflow-hidden flex flex-col min-h-0">
           <div className="bg-income-surface px-4 py-3 flex items-center justify-between border-b border-income-stroke">
             <span className="font-semibold text-income">Income</span>
+            {/* Month total on phones */}
+            <span className="md:hidden font-semibold text-income">
+              {formatEuro(totalIncome)}
+            </span>
             <button
               onClick={() => setModal("INCOME")}
-              className="flex items-center gap-1 text-xs font-medium bg-income-btn hover:bg-income-btn-hover text-income px-3 py-1.5 rounded transition-colors"
+              className="max-md:hidden flex items-center gap-1 text-xs font-medium bg-income-btn hover:bg-income-btn-hover text-income px-3 py-1.5 rounded transition-colors"
             >
               <Plus size={14} /> Add Income
             </button>
           </div>
 
-          <div className="bg-card flex-1 overflow-y-auto min-h-0 custom-scrollbar">
+          {/* Rows, desktop only */}
+          <div className="bg-card flex-1 overflow-y-auto min-h-0 custom-scrollbar max-md:hidden">
             {aggIncome.length === 0 ? (
               <p className="text-sm text-ink-faint px-4 py-8 text-center">
                 No income this month
@@ -83,7 +97,8 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className="bg-income-surface/50 border-t border-income-stroke px-4 py-2.5 flex justify-between items-center">
+          {/* Total, desktop only */}
+          <div className="bg-income-surface/50 border-t border-income-stroke px-4 py-2.5 flex justify-between items-center max-md:hidden">
             <span className="text-xs font-semibold text-income uppercase tracking-wide">
               Total
             </span>
@@ -92,7 +107,7 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <div className="bg-card px-4 pt-2 pb-5 border-t border-stroke-light">
+          <div className="bg-card px-4 pt-2 pb-5 border-stroke-light md:border-t">
             <IncomeBar transactions={incomes} />
           </div>
         </div>
@@ -101,15 +116,20 @@ export default function Dashboard() {
         <div className="border border-stroke rounded-lg overflow-hidden flex flex-col min-h-0">
           <div className="bg-expense-surface px-4 py-3 flex items-center justify-between border-b border-expense-stroke">
             <span className="font-semibold text-expense">Expenses</span>
+            {/* Month total on phones */}
+            <span className="md:hidden font-semibold text-expense">
+              {formatEuro(totalExpense)}
+            </span>
             <button
               onClick={() => setModal("EXPENSE")}
-              className="flex items-center gap-1 text-xs font-medium bg-expense-btn hover:bg-expense-btn-hover text-expense px-3 py-1.5 rounded transition-colors"
+              className="max-md:hidden flex items-center gap-1 text-xs font-medium bg-expense-btn hover:bg-expense-btn-hover text-expense px-3 py-1.5 rounded transition-colors"
             >
               <Plus size={14} /> Add Expense
             </button>
           </div>
 
-          <div className="bg-card flex-1 overflow-y-auto min-h-0 custom-scrollbar">
+          {/* Rows, desktop only */}
+          <div className="bg-card flex-1 overflow-y-auto min-h-0 custom-scrollbar max-md:hidden">
             {aggExpense.length === 0 ? (
               <p className="text-sm text-ink-faint px-4 py-8 text-center">
                 No expenses this month
@@ -151,7 +171,8 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className="bg-expense-surface/50 border-t border-expense-stroke px-4 py-2.5 flex justify-between items-center">
+          {/* Total, desktop only */}
+          <div className="bg-expense-surface/50 border-t border-expense-stroke px-4 py-2.5 flex justify-between items-center max-md:hidden">
             <span className="text-xs font-semibold text-expense uppercase tracking-wide">
               Total
             </span>
@@ -160,7 +181,7 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <div className="bg-card px-4 pt-2 pb-5 border-t border-stroke-light">
+          <div className="bg-card px-4 pt-2 pb-5 border-stroke-light md:border-t">
             <ExpenseProgressBars transactions={active} />
           </div>
         </div>
