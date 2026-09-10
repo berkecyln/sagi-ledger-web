@@ -15,6 +15,10 @@ function useDarkMode() {
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
     localStorage.setItem('sagi-theme', dark ? 'dark' : 'light');
+
+    // Match the phone status bar to the header colour
+    const card = getComputedStyle(document.documentElement).getPropertyValue('--card').trim();
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', card);
   }, [dark]);
 
   return [dark, setDark] as const;
