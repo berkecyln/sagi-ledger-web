@@ -2,8 +2,8 @@
  * Dashboard
  *
  * Month overview with an income and an expense column.
- * On phones only the totals and bars are visible, add Income and add Expense buttons
- * are fixed to the bottom of the screen via AddActionButtons.
+ * On phones only the totals, bars and total balances are visible, add Income and add Expense
+ * buttons are fixed to the bottom of the screen via AddActionButtons.
  *
  */
 
@@ -19,6 +19,7 @@ import TransactionModal from "../components/TransactionModal";
 import IncomeBar from "../components/IncomeBar";
 import ExpenseProgressBars from "../components/ExpenseProgressBars";
 import AccountTag from "../components/AccountTag";
+import { TotalBalancesCard } from "../components/TotalBalances";
 import type { TransactionType } from "../types";
 
 const th =
@@ -185,6 +186,9 @@ export default function Dashboard() {
             <ExpenseProgressBars transactions={active} />
           </div>
         </div>
+
+        {/* Total balances, phones only */}
+        <TotalBalancesCard />
       </div>
 
       {modal && (

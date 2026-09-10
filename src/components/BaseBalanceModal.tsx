@@ -81,7 +81,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
       <div className="bg-card rounded-lg w-full max-w-sm border border-stroke shadow-lg">
         <div className="flex items-center justify-between px-5 py-4 rounded-t-lg border-b border-stroke bg-page">
           <h2 className="font-semibold text-base text-ink">

@@ -15,16 +15,16 @@ export default function AddActionButtons() {
 
   return (
     <>
-      <div className="md:hidden sticky bottom-0 z-40 flex gap-3 p-3 bg-card border-t border-stroke">
+      <div className="md:hidden sticky bottom-0 z-40 flex gap-3 px-3 pt-3 pb-6 bg-card border-t border-stroke">
         <button
           onClick={() => setModal('INCOME')}
-          className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-lg text-base font-medium bg-income-btn text-income active:bg-income-btn-hover transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 py-4 rounded-lg text-base font-medium bg-income-btn text-income active:bg-income-btn-hover transition-colors"
         >
           <Plus size={18} /> Add Income
         </button>
         <button
           onClick={() => setModal('EXPENSE')}
-          className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-lg text-base font-medium bg-expense-btn text-expense active:bg-expense-btn-hover transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 py-4 rounded-lg text-base font-medium bg-expense-btn text-expense active:bg-expense-btn-hover transition-colors"
         >
           <Plus size={18} /> Add Expense
         </button>

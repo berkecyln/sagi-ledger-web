@@ -72,6 +72,28 @@ export function getAllTimeBalanceByAccount(
   }));
 }
 
+// Total balance per known account, base balance plus every month, highest first
+export function getTotalBalances(
+  months: Record<string, Transaction[]>,
+  accountColors: Record<string, string>,
+  baseAccountBalances: Record<string, number>
+): { account: string; total: number }[] {
+  // Every known account, same list as the settings modal
+  const totals: Record<string, number> = {};
+  for (const account of Object.keys(accountColors)) {
+    totals[account] = baseAccountBalances[account] ?? 0;
+  }
+
+  // Monthly activity on top
+  for (const { account, balance } of getAllTimeBalanceByAccount(months)) {
+    totals[account] = (totals[account] ?? 0) + balance;
+  }
+
+  return Object.entries(totals)
+    .map(([account, total]) => ({ account, total }))
+    .sort((a, b) => b.total - a.total);
+}
+
 export function getUniqueDescriptions(months: Record<string, Transaction[]>): string[] {
   const all = Object.values(months).flat();
   return [...new Set(all.map((t) => t.description))].filter(Boolean).sort();

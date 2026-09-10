@@ -9,7 +9,7 @@
 import { Outlet, useMatch } from 'react-router-dom';
 import Header from './Header';
 import MonthBar from './MonthBar';
-import CumulativeFooter from './CumulativeFooter';
+import { TotalBalancesFooter } from './TotalBalances';
 import AddActionButtons from './AddActionButtons';
 import ErrorBanner from './ErrorBanner';
 import UnsavedGuard from './UnsavedGuard';
@@ -24,7 +24,8 @@ export default function Layout() {
       <main className="flex-1 p-3 md:p-6 flex flex-col md:overflow-hidden md:min-h-0">
         <Outlet />
       </main>
-      <CumulativeFooter />
+      {/* Desktop only, phones show balances as a Dashboard card */}
+      <TotalBalancesFooter />
       {/* On phone add buttons are fixed to the bottom */}
       {onDashboard && <AddActionButtons />}
       <ErrorBanner />

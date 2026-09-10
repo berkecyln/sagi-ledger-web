@@ -33,8 +33,11 @@ export default function ExpenseProgressBars({ transactions }: Props) {
           <div key={a.account}>
             <div className="flex justify-between items-center mb-1">
               <AccountTag account={a.account} color={accentColor} />
-              <span className="text-xs font-medium" style={{ color: thresholdColor(pct) }}>
-                {pct.toFixed(0)}% Spent — {formatEuro(balance)} remaining
+              <span className="flex items-center gap-2 text-xs font-medium" style={{ color: thresholdColor(pct) }}>
+                {pct.toFixed(0)}% Spent
+                {/* Separator */}
+                <span className="w-px h-3 bg-current opacity-40" />
+                {formatEuro(balance)} remaining
               </span>
             </div>
             <div className="w-full bg-hover rounded-full h-2.5 overflow-hidden">
