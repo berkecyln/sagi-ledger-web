@@ -1,13 +1,23 @@
+/**
+ * Month bar
+ *
+ * Month navigation and the Apply Template action for the active month.
+ * On phones the confirm and the progress replace the month row.
+ *
+ */
+
 import { ChevronLeft, ChevronRight, LayoutTemplate, Loader2, X } from 'lucide-react';
 import { useState } from 'react';
 import { useStore } from '../store';
 
+// Return the key of the month before
 function prevMonth(key: string): string {
   const [y, m] = key.split('-').map(Number);
   const d = new Date(y, m - 2, 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
+// Return the key of the month after
 function nextMonth(key: string): string {
   const [y, m] = key.split('-').map(Number);
   const d = new Date(y, m, 1);
@@ -27,8 +37,12 @@ export default function MonthBar() {
   const earliestMonth = monthKeys[0];
   const isPrevDisabled = !!earliestMonth && activeMonthKey <= earliestMonth;
 
+  // Template confirm or progress is showing
+  const busy = confirming || !!applying;
+
   return (
     <div className="bg-monthbar border-b border-stroke py-3 relative">
+      {/* Template progress */}
       {applying && (
         <div className="absolute inset-x-0 bottom-0 h-0.5 bg-stroke">
           <div
@@ -37,7 +51,9 @@ export default function MonthBar() {
           />
         </div>
       )}
-      <div className="flex items-center justify-center gap-5">
+
+      {/* Month navigation, hidden on phones while busy */}
+      <div className={`flex items-center justify-center gap-5 ${busy ? 'max-md:hidden' : ''}`}>
         <button
           onClick={() => !isPrevDisabled && setActiveMonth(prevMonth(activeMonthKey))}
           disabled={isPrevDisabled}
@@ -61,8 +77,15 @@ export default function MonthBar() {
         </button>
       </div>
 
+      {/* Apply template, takes the month row on phones while busy */}
       {template.length > 0 && (
-        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+        <div
+          className={
+            busy
+              ? 'flex h-8 items-center justify-center md:h-auto md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2'
+              : 'absolute right-3 md:right-4 top-1/2 -translate-y-1/2'
+          }
+        >
           {applying ? (
             <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-ink-muted">
               <Loader2 size={14} className="animate-spin text-accent" />
@@ -70,7 +93,7 @@ export default function MonthBar() {
             </div>
           ) : confirming ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-ink-faint">Overwrites this month.</span>
+              <span className="text-xs text-ink-faint">Overwrite {monthName}?</span>
               <button
                 onClick={() => { applyTemplateToMonth(); setConfirming(false); }}
                 className="px-3 py-1.5 rounded text-xs font-medium text-danger border border-danger/30 hover:bg-danger/10 transition-colors"
@@ -89,10 +112,11 @@ export default function MonthBar() {
             <button
               onClick={() => setConfirming(true)}
               title="Apply template to this month"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-accent border border-accent/30 hover:bg-accent/10 transition-colors"
+              aria-label="Apply template to this month"
+              className="flex items-center gap-1.5 p-2 md:px-3 md:py-1.5 rounded text-xs font-medium text-accent border border-accent/30 hover:bg-accent/10 transition-colors"
             >
               <LayoutTemplate size={14} />
-              Apply Template
+              <span className="hidden md:inline">Apply Template</span>
             </button>
           )}
         </div>

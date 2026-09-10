@@ -28,8 +28,8 @@ export default function CumulativeFooter() {
   if (activeBalances.length === 0) return null;
 
   return (
-    <div className="border-t border-stroke bg-card p-4 mt-auto flex justify-center items-center relative">
-      <div className="max-w-7xl flex flex-wrap gap-4 items-center justify-center text-sm">
+    <div className="border-t border-stroke bg-card p-3 md:p-4 mt-auto flex justify-center items-center gap-3 relative">
+      <div className="max-w-7xl flex flex-wrap gap-2 md:gap-4 items-center justify-center text-sm">
         <span className="mr-2 uppercase tracking-wider text-xs font-semibold text-ink">
           Total Balances
         </span>
@@ -52,7 +52,8 @@ export default function CumulativeFooter() {
           </div>
         ))}
       </div>
-      <div className="absolute right-4 flex items-center">
+      {/* Settings, inline on phones */}
+      <div className="shrink-0 flex items-center md:absolute md:right-4">
         <button
           onClick={() => setIsModalOpen(true)}
           className="text-ink-muted hover:text-ink transition-colors outline-none focus:outline-none"
