@@ -187,14 +187,23 @@ export default function Ledger() {
                     {tx.type === 'INCOME' ? '+' : '-'}{formatEuro(tx.amount)}
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => setEditTx(tx)} className="text-stroke hover:text-accent transition-colors" aria-label="Edit">
-                        <Pencil size={13} />
-                      </button>
-                      <button onClick={() => deleteTransaction(tx.id)} className="text-stroke hover:text-danger transition-colors" aria-label="Delete">
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
+                    {confirmingId === tx.id ? (
+                      <div className="flex items-center justify-end gap-3 whitespace-nowrap text-xs font-medium">
+                        {/* Delete confirm */}
+                        <span className="text-ink-muted">Delete?</span>
+                        <button onClick={() => { deleteTransaction(tx.id); setConfirmingId(null); }} className="text-danger">Yes</button>
+                        <button onClick={() => setConfirmingId(null)} className="text-ink-muted hover:text-ink">No</button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => setEditTx(tx)} className="text-stroke hover:text-accent transition-colors" aria-label="Edit">
+                          <Pencil size={13} />
+                        </button>
+                        <button onClick={() => setConfirmingId(tx.id)} className="text-stroke hover:text-danger transition-colors" aria-label="Delete">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))
