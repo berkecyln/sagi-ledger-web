@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Save, Plus } from "lucide-react";
+import { X, Save, Plus, Undo2 } from "lucide-react";
 import { useStore } from "../store";
 import { getNextColor } from "../utils/colors";
 import { isAccountInUse, parseEuro, toEuroInput } from "../utils/aggregations";
@@ -32,6 +32,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
 
   const [newAccounts, setNewAccounts] = useState<Array<{ id: number; name: string; amount: string }>>([]);
   const [nextId, setNextId] = useState(1);
+  const [removed, setRemoved] = useState<Set<string>>(new Set());
 
   function handleAddNewRow() {
     setNewAccounts([...newAccounts, { id: nextId, name: "", amount: "" }]);
@@ -42,12 +43,12 @@ export default function BaseBalanceModal({ onClose }: Props) {
     setNewAccounts(newAccounts.filter((acc) => acc.id !== id));
   }
 
-  // Drop the row from local state too
-  function handleDeleteAccount(account: string) {
-    deleteAccount(account);
-    setBalances((prev) => {
-      const next = { ...prev };
-      delete next[account];
+  // Mark or unmark an account for removal on save
+  function handleToggleRemove(account: string) {
+    setRemoved((prev) => {
+      const next = new Set(prev);
+      if (next.has(account)) next.delete(account);
+      else next.add(account);
       return next;
     });
   }
@@ -57,12 +58,18 @@ export default function BaseBalanceModal({ onClose }: Props) {
 
     // Save existing accounts
     for (const [account, value] of Object.entries(balances)) {
+      if (removed.has(account)) continue;
       const cents = parseEuro(value);
       if (cents !== null) {
         setBaseAccountBalance(account, cents);
       } else if (value.trim() === "") {
         setBaseAccountBalance(account, 0); // Default to 0 if cleared
       }
+    }
+
+    // Remove marked accounts
+    for (const account of removed) {
+      deleteAccount(account);
     }
 
     // Save newly added accounts
@@ -83,17 +90,10 @@ export default function BaseBalanceModal({ onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
       <div className="bg-card rounded-lg w-full max-w-sm border border-stroke shadow-lg">
-        <div className="flex items-center justify-between px-5 py-4 rounded-t-lg border-b border-stroke bg-page">
+        <div className="px-5 py-4 rounded-t-lg border-b border-stroke bg-page">
           <h2 className="font-semibold text-base text-ink">
             Adjust Saving Base Amounts
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="hover:opacity-60 transition-opacity text-ink-muted"
-          >
-            <X size={18} />
-          </button>
         </div>
 
         <form autoComplete="off" onSubmit={handleSubmit} className="px-5 py-4 flex flex-col max-h-[85vh]">
@@ -110,6 +110,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
             ) : (
               accounts.map((account) => {
                 const inUse = isAccountInUse(account, months, template);
+                const isRemoved = removed.has(account);
                 return (
                 <div
                   key={account}
@@ -123,7 +124,7 @@ export default function BaseBalanceModal({ onClose }: Props) {
                       }}
                     />
                     <span
-                      className="font-medium text-sm truncate"
+                      className={`font-medium text-sm truncate ${isRemoved ? "line-through opacity-50" : ""}`}
                       style={{ color: accountColors[account] || "var(--ink)" }}
                     >
                       {account}
@@ -138,31 +139,34 @@ export default function BaseBalanceModal({ onClose }: Props) {
                       inputMode="decimal"
                       autoComplete="off"
                       value={balances[account] || ""}
+                      disabled={isRemoved}
                       onChange={(e) =>
                         setBalances({ ...balances, [account]: e.target.value })
                       }
-                      className="w-full bg-background border border-stroke rounded pl-6 pr-2 py-1.5 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent/50"
+                      className="w-full disabled:line-through disabled:opacity-50 bg-background border border-stroke rounded pl-6 pr-2 py-1.5 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent/50"
                       placeholder="0,00"
                     />
                   </div>
-                  {/* Delete account */}
+                  {/* Remove account, or undo the removal */}
                   <button
                     type="button"
                     disabled={inUse}
-                    onClick={() => handleDeleteAccount(account)}
+                    onClick={() => handleToggleRemove(account)}
                     className={
                       inUse
                         ? "text-ink-ghost cursor-not-allowed"
                         : "text-ink-muted hover:text-danger transition-colors"
                     }
-                    aria-label={`Remove ${account}`}
+                    aria-label={isRemoved ? `Keep ${account}` : `Remove ${account}`}
                     title={
                       inUse
                         ? "Still used by transactions"
-                        : "Remove account"
+                        : isRemoved
+                          ? "Keep account"
+                          : "Remove account"
                     }
                   >
-                    <X size={16} />
+                    {isRemoved ? <Undo2 size={16} /> : <X size={16} />}
                   </button>
                 </div>
                 );
