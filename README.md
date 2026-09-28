@@ -26,9 +26,9 @@ Live at [sagiledger.com](https://sagiledger.com).
 |---|---|
 | ![Dashboard](assets/screenshots/dashboard.png) | ![Ledger](assets/screenshots/ledger.png) |
 
-| Template | Mobile UI |
-|---|---|
-| <img src="assets/screenshots/template.png" height="430" alt="Template"> | <img src="assets/screenshots/phone-dashboard.png" height="430" alt="Dashboard on a phone"> <img src="assets/screenshots/phone-ledger.png" height="430" alt="Ledger on a phone"> |
+| Template and Mobile UI |
+|---|
+| ![Template and Mobile UI](assets/screenshots/template-mobile.png) |
 
 ## Architecture
 
@@ -40,7 +40,7 @@ Live at [sagiledger.com](https://sagiledger.com).
 
 More in [docs/architecture.md](docs/architecture.md).
 
-![Sagi setup](assets/sagi-architecture.png)s
+![Sagi setup](assets/sagi-architecture.png)
 
 ## Documentation
 
