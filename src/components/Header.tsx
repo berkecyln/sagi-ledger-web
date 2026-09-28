@@ -6,13 +6,10 @@
  *
  */
 
-import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { ChartPie, DatabaseBackup, House, LayoutTemplate, LogOut, ReceiptText, type LucideIcon } from 'lucide-react';
+import { ChartPie, House, LayoutTemplate, LogOut, ReceiptText, type LucideIcon } from 'lucide-react';
 import { logout } from '../api';
-import ImportPrompt from './ImportPrompt';
 import ThemeToggle from './ThemeToggle';
-import { useStore } from '../store';
 
 interface NavItem {
   to: string;
@@ -38,9 +35,6 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   }`;
 
 export default function Header() {
-  const [importing, setImporting] = useState(false);
-  const hasLegacyData = useStore((s) => s.hasLegacy);
-
   return (
     <header className="bg-card border-b border-stroke px-4 md:px-6 py-3 flex items-center justify-between">
       <span className="font-semibold text-accent text-lg tracking-tight">Sagi</span>
@@ -58,16 +52,6 @@ export default function Header() {
           </NavLink>
         ))}
         <div className="w-px h-4 bg-stroke mx-1" />
-        {hasLegacyData && (
-          <button
-            onClick={() => setImporting(true)}
-            className="p-1.5 rounded text-accent hover:bg-hover transition-colors"
-            aria-label="Import my old data"
-            title="Import my old data"
-          >
-            <DatabaseBackup size={16} />
-          </button>
-        )}
         <ThemeToggle />
         <button
           onClick={logout}
@@ -78,7 +62,6 @@ export default function Header() {
           <LogOut size={16} />
         </button>
       </nav>
-      {importing && <ImportPrompt onClose={() => setImporting(false)} />}
     </header>
   );
 }

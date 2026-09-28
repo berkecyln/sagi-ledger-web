@@ -11,16 +11,13 @@ import { Loader2, RefreshCw } from 'lucide-react';
 import {
   currentUser,
   describeError,
-  isEmpty,
   loadAll,
   onAuthChange,
-  hasLegacyBlob,
   resetAccountCache,
   type SessionUser,
 } from '../api';
 import { useStore } from '../store';
 import AuthScreen from '../pages/AuthScreen';
-import ImportPrompt from './ImportPrompt';
 
 // Full screen spinner shown while the first fetch runs
 function Loading() {
@@ -53,7 +50,6 @@ export default function AuthGate({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(() => currentUser());
   const status = useStore((s) => s.status);
   const error = useStore((s) => s.error);
-  const offerImport = useStore((s) => s.offerImport);
 
   // Follow sign in, sign out and token refresh
   useEffect(() => onAuthChange(setUser), []);
@@ -65,10 +61,6 @@ export default function AuthGate({ children }: { children: ReactNode }) {
     try {
       const server = await loadAll();
       hydrate(server);
-      // Nothing on the server yet, but this browser still holds the old ledger
-      const legacy = hasLegacyBlob();
-      useStore.getState().setHasLegacy(legacy);
-      useStore.getState().setOfferImport(isEmpty(server) && legacy);
     } catch (err) {
       failLoading(describeError(err));
     }
@@ -88,12 +80,5 @@ export default function AuthGate({ children }: { children: ReactNode }) {
   if (status === 'error') return <LoadError message={error ?? ''} onRetry={load} />;
   if (status === 'loading') return <Loading />;
 
-  return (
-    <>
-      {children}
-      {offerImport && (
-        <ImportPrompt onClose={() => useStore.getState().setOfferImport(false)} />
-      )}
-    </>
-  );
+  return <>{children}</>;
 }
