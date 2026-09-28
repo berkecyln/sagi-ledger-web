@@ -2,27 +2,24 @@
 
 **File:** `src/pages/Ledger.tsx`
 
-## What it shows
+Every transaction of the active month.
 
-Every individual transaction for the active month in a sortable, filterable table.
+## Search and filters
 
-## Columns
+- **Search** matches description, account or amount.
+- **Filters** by type, description and account. The description and account lists come from the transactions of every month, so they show what is actually in the data.
+- Both apply to the active month only.
 
-Date · Type (badge) · Description · Account ([`AccountTag`](../components/AccountTag.md)) · Amount · Actions
+## Desktop
 
-## Sorting
+A table with Date, Type, Description, Account and Amount. Clicking a column header sorts by it, clicking again reverses. Newest first by default.
 
-Click any column header to sort ascending. Click again for descending.
+Each row has edit and delete. Delete asks `Delete? Yes No` before removing the row.
 
-## Filters
+## On phones
 
-A filter bar above the table with three dropdowns:
-- **Type** — All / Income / Expense
-- **Description** — populated from all unique descriptions across all months
-- **Account** — populated from all unique accounts across all months
+- Filters sit behind a toggle next to the search, with a dot when any filter is active.
+- Rows are cards, newest first. Tapping a card opens it for editing.
+- The trash icon asks `Delete "X"? Yes No` in place of the card.
 
-"Clear filters" button appears when any filter is active.
-
-## Edit & delete
-
-Each row has a pencil icon (edit) and trash icon (delete). Edit opens [`TransactionModal`](../components/TransactionModal.md) pre-filled with the transaction's current values.
+Editing opens [`TransactionModal`](../components/TransactionModal.md) with the current values.

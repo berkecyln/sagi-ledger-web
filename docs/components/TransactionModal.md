@@ -2,30 +2,34 @@
 
 **File:** `src/components/TransactionModal.tsx`
 
-A modal dialog used for adding and editing transactions. Shared across Dashboard, Ledger, and Template Manager.
+Form to add or edit a transaction or a template item. Used by the Dashboard, Ledger and Template pages.
 
 ## Props
 
 | Prop | Type | Notes |
 |---|---|---|
-| `type` | `'INCOME' \| 'EXPENSE'` | Controls header color and which store action is called |
-| `onClose` | `() => void` | Called on cancel or successful submit |
-| `editTransaction` | `Transaction?` | When provided, pre-fills all fields and calls update instead of add |
-| `isTemplate` | `boolean?` | When true, writes to `template` array. Swaps date picker for day-of-month input. |
+| `type` | `'INCOME' \| 'EXPENSE'` | Header colour and which label list is shown |
+| `onClose` | `() => void` | Called on cancel and after saving |
+| `editTransaction` | `Transaction?` | Fills the form and saves as an edit |
+| `isTemplate` | `boolean?` | Saves to the template, date becomes a day of month |
 
 ## Fields
 
-- **Amount** — number input
-- **Date** — date picker (normal mode) OR day-of-month 1–28 (template mode)
-- **Description**: [`CreatableSelect`](CreatableSelect.md) populated from `store.descriptions[type]`, the curated list for this modal's transaction type. `onCreate` and `onDelete` are bound to that same type
-- **Account** — [`CreatableSelect`](CreatableSelect.md) populated from all existing accounts
-- **Account color** — swatch picker (12 colors) appears when account field has a value. Clicking a swatch immediately calls `setAccountColor` and updates everywhere.
+- **Amount:** typed as text, `12,50` and `12.50` both work. Stored as cents. Negative or invalid amounts show an error.
+- **Date:** date picker, or **Day of month** (1 to 31, optional) in template mode.
+- **Description:** [`CreatableSelect`](CreatableSelect.md) with the labels for this type, including create and delete.
+- **Account:** [`CreatableSelect`](CreatableSelect.md) with every known account. A new name creates the account on save.
+- **Account colour:** swatches shown once an account is chosen. A click changes the colour straight away.
 
 ## Modes
 
-| Mode | Triggered by | Store action |
-|---|---|---|
-| Add transaction | `editTransaction` not set, `isTemplate` false | `addTransaction` |
-| Edit transaction | `editTransaction` provided | `updateTransaction` |
-| Add template item | `isTemplate` true | `addTemplateItem` |
-| Edit template item | `editTransaction` + `isTemplate` true | `updateTemplateItem` |
+| Mode | Store action |
+|---|---|
+| Add transaction | `addTransaction` |
+| Edit transaction | `updateTransaction` |
+| Add template item | `addTemplateItem` |
+| Edit template item | `updateTemplateItem` |
+
+## On phones
+
+Full screen. The fields scroll and Cancel and Save stay at the bottom, above the keyboard.

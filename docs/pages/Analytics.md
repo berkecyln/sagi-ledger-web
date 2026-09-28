@@ -2,20 +2,16 @@
 
 **File:** `src/pages/Analytics.tsx`
 
-## What it shows
+Charts for the active month. Hidden from the navigation on phones.
 
-Two donut charts side by side for the active month, plus a centered net balance card below.
+## Income by account
 
-## Income donut (left)
+Donut chart of income per account, in the account colours from [`AccountTag`](../components/AccountTag.md).
 
-- Grouped by **account** — shows which bank received income
-- Segment colors come from `accountColors` (the same colors shown in [`AccountTag`](../components/AccountTag.md))
+## Expenses by category
 
-## Expense donut (right)
+Donut chart of expenses per description, in a fixed palette since labels have no colour of their own.
 
-- Grouped by **description** — shows spending categories (Rent, Groceries, etc.)
-- Colors are a fixed rose/orange palette (not account colors, since categories don't have colors)
+## Net balance
 
-## Net balance card
-
-Centered below the charts. Shows `+€X,XXX` or `-€X,XXX` in green or red.
+Card below the charts with income minus expenses, green when positive and red when negative, plus both totals.

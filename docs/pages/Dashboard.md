@@ -2,25 +2,24 @@
 
 **File:** `src/pages/Dashboard.tsx`
 
-## What it shows
+Overview of the active month, income on the left and expenses on the right.
 
-Two equal columns side by side — Income (left) and Expenses (right) — for the active month.
+## Income
 
-## Income column
+- Rows grouped by **description and account**. Salary from TEB and Salary from Sparkasse are two rows.
+- Total below the rows, then [`IncomeBar`](../components/IncomeBar.md).
 
-- Rows are grouped by **description + account**. "Salary" from TEB and "Salary" from Garanti appear as two separate rows.
-- Each row shows: description · [`AccountTag`](../components/AccountTag.md) · amount
-- Below the table: a [`Total` strip](../components/IncomeBar.md) then the [`IncomeBar`](../components/IncomeBar.md) (stacked bar by account)
+## Expenses
 
-## Expense column
+- Rows grouped by **description only**. When one label was paid from several accounts, every [`AccountTag`](../components/AccountTag.md) is shown.
+- Total below the rows, then [`ExpenseProgressBars`](../components/ExpenseProgressBars.md).
 
-- Rows are grouped by **description only**. If the same expense came from two accounts both tags are shown in the Account cell.
-- Below the table: a `Total` strip then [`ExpenseProgressBars`](../components/ExpenseProgressBars.md)
+## Adding
 
-## Total strip
+**Add Income** and **Add Expense** open [`TransactionModal`](../components/TransactionModal.md) with the type set.
 
-Sits between the table and the chart section. Shows "TOTAL" label + amount. Not a table row — it's a separate `div` so it visually separates data from charts.
+## On phones
 
-## Modal
-
-Clicking "Add Income" or "Add Expense" opens [`TransactionModal`](../components/TransactionModal.md) with the type pre-set.
+- Each column shows only its month total in the header and its bars. The rows are in the Ledger.
+- [`TotalBalances`](../components/TotalBalances.md) appears as a card below the columns.
+- Add Income and Add Expense are large buttons fixed to the bottom of the screen (`AddActionButtons`).

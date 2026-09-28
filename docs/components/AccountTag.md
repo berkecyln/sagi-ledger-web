@@ -2,27 +2,21 @@
 
 **File:** `src/components/AccountTag.tsx`
 
-A small colored badge showing an account name. Used everywhere an account name appears in the UI.
+Coloured badge with a dot and the account name. Used wherever an account name appears.
 
 ## Props
 
 | Prop | Type | Notes |
 |---|---|---|
-| `account` | `string` | Account name to display |
-| `color` | `string?` | Hex color from `accountColors`. Falls back to gray if undefined. |
+| `account` | `string` | Account name |
+| `color` | `string?` | Hex colour from `accountColors`, grey when missing |
 
 ## Appearance
 
-Colored dot + account name text. Background and border are tinted versions of the account color (low opacity so it's readable).
+Text and dot use the account colour. Background and border are the same colour at low opacity, slightly stronger in dark mode. The component watches `data-theme` on `<html>` so it updates when the theme changes.
 
-## Where it's used
+Palette colours in `src/utils/colors.ts` are mid tones so they stay readable in both themes.
 
-- Dashboard income rows (one tag per row)
-- Dashboard expense rows (one or more tags if multiple accounts)
-- Ledger account column
-- Template Manager account column
-- ExpenseProgressBars account labels
+## Changing a colour
 
-## Changing a color
-
-Open any [`TransactionModal`](TransactionModal.md), type or select the account name, then click a color swatch in the "Account color" picker that appears below the field. Color updates immediately everywhere.
+Pick a swatch under the account field in [`TransactionModal`](TransactionModal.md). The change applies everywhere at once.

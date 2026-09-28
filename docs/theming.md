@@ -82,7 +82,7 @@ The `@theme inline` block tells Tailwind v4 to generate utilities (`bg-page`, `t
 
 ## Switching themes at runtime
 
-The dark/light state is stored in `localStorage` under the key `sagi-theme` and applied as `data-theme="dark"` on `<html>`. The toggle button lives in the Header (moon/sun icon, right of the nav).
+The dark/light state is stored in `localStorage` under the key `sagi-theme` and applied as `data-theme="dark"` on `<html>`. The toggle is `src/components/ThemeToggle.tsx`, shown in the Header and on the sign in screen. It also sets the `theme-color` meta tag from `--card`, so the phone's status bar matches the app.
 
 To switch programmatically:
 ```js
@@ -110,10 +110,10 @@ localStorage.setItem('sagi-theme', 'dark')         // persist it
 
 ## Account tag colours
 
-Account tags use per-account hex colours stored in `accountColors` (chosen from `src/utils/colors.ts`). The `AccountTag` component observes `data-theme` via a `MutationObserver` and adjusts background and border opacity automatically — higher opacity in dark mode so tags stay clearly visible against dark surfaces.
+Account tags use per-account hex colours stored in `accountColors` (chosen from `src/utils/colors.ts`). The `AccountTag` component observes `data-theme` via a `MutationObserver` and adjusts background and border opacity automatically, higher in dark mode so tags stay clearly visible against dark surfaces.
 
 All palette colours are mid-tones chosen to work in both themes. Avoid very dark colours (near-black) in the palette as they become unreadable in dark mode.
 
 ## Progress bar thresholds
 
-The `ExpenseProgressBars` component uses `var(--danger)`, `var(--accent)`, and `var(--ink-faint)` directly for its threshold colours (>80% spent = danger, 50–80% = accent, <50% = faint). These automatically follow the active theme.
+The `ExpenseProgressBars` component uses `var(--danger)`, `var(--accent)`, and `var(--ink-faint)` directly for its threshold colours (80% spent and above is danger, 50% and above is accent, below that faint). These automatically follow the active theme.

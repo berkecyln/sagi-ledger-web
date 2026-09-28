@@ -2,29 +2,21 @@
 
 **File:** `src/components/ExpenseProgressBars.tsx`
 
-One horizontal progress bar per account showing spending vs income for the **active month only**. Shown at the bottom of the Expense column on the Dashboard.
+One bar per account showing how much of the month's income was spent. Shown under the expense column on the Dashboard.
 
-## Per-account calculation
+## Calculation
 
-`pct = (monthExpense / monthIncome) * 100`
+```
+spent = expenses / income × 100   (100% when the account has no income)
+remaining = income - expenses
+```
 
-If an account has no income this month, `pct` is set to 100%.
+Active month only.
 
-## Color thresholds (bar fill)
+## Appearance
 
-| % spent | Bar color |
-|---|---|
-| < 50% | Slate (account color at 80% opacity) |
-| 50–80% | Amber text warning |
-| > 80% | Red text warning |
+- Left: [`AccountTag`](AccountTag.md). Right: `18% Spent | 1.637,00 € remaining`.
+- The bar uses the account colour and stops at 100%.
+- The label turns accent from 50% and danger from 80%, following the theme.
 
-The bar fill uses the account's color. The right-side text label changes color based on threshold to draw attention.
-
-## Labels
-
-- Left: [`AccountTag`](AccountTag.md) with the account's color
-- Right: "18% Spent — €1,637 remaining"
-
-## Returns null
-
-If there are no transactions this month, renders nothing.
+Renders nothing when there are no transactions this month.

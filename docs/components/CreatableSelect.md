@@ -2,31 +2,36 @@
 
 **File:** `src/components/CreatableSelect.tsx`
 
-A combobox input that shows a filtered dropdown of existing options and allows typing a new value that isn't in the list.
+Text field with a filtered suggestion list. Can optionally create new entries and delete existing ones.
 
 ## Props
 
 | Prop | Type | Notes |
 |---|---|---|
-| `value` | `string` | Controlled value |
-| `onChange` | `(val: string) => void` | Called on every keystroke and on selection |
-| `options` | `string[]` | Existing options to show in dropdown |
-| `placeholder` | `string?` | Input placeholder text |
-| `id` | `string?` | For `<label htmlFor>` linkage |
-| `onCreate` | `((val: string) => void)?` | Called **only** when the "Create X" row is clicked. Omit for an ad-hoc field with no saved list |
-| `onDelete` | `((val: string) => void)?` | When provided, each option row gets a cross to remove it from the saved list |
+| `value` | `string` | Current value |
+| `onChange` | `(val: string) => void` | Called on typing and on selection |
+| `options` | `string[]` | Suggestions |
+| `placeholder` | `string?` | |
+| `id` | `string?` | For the label |
+| `onCreate` | `(val: string) => void?` | Adds a `Create "X"` row when the typed value is new |
+| `onDelete` | `(val: string) => void?` | Lets the user delete suggestions |
 
 ## Behaviour
 
-- Typing filters the options list
-- If the trimmed typed value doesn't exist in options, a "Create X" entry appears at the bottom
-- Typing alone never saves a label, only the "Create X" row does, via `onCreate`
-- With `onDelete`, hovering an option reveals a cross that removes the label from the list without touching any transaction
-- Clicking outside closes the dropdown and clears the field if empty
+- Typing filters the list. Typing alone never saves a new entry, only the `Create "X"` row does.
+- A row is selected on click, so releasing after a scroll or a hold does not select it.
+- Clicking outside closes the list.
+
+## Deleting a suggestion
+
+- **Desktop:** a cross appears when hovering a row.
+- **Touch:** holding a row for half a second turns it into `Delete "X"? Yes No`. A hint at the bottom of the list says so.
+
+Deleting removes the suggestion only. Transactions keep their text.
 
 ## Used in
 
 [`TransactionModal`](TransactionModal.md):
 
-- **Description**: curated list from `store.descriptions[type]`, with `onCreate` + `onDelete` bound to the modal's transaction type
-- **Account**: still derived from existing transactions via `getUniqueAccounts`, no create/delete wiring yet
+- **Description:** labels for the modal's type, with create and delete.
+- **Account:** every known account, no create or delete. A new name is created when the transaction is saved.

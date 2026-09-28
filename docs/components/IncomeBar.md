@@ -2,16 +2,10 @@
 
 **File:** `src/components/IncomeBar.tsx`
 
-A single stacked horizontal bar showing income split by account for the active month. Shown at the bottom of the Income column on the Dashboard.
+One stacked bar showing the month's income split by account. Shown under the income column on the Dashboard.
 
-## How it works
+- Each account is a segment in its colour, sized by its share of income.
+- Hovering a segment shows the account, amount and percentage.
+- A legend below lists each account with its percentage.
 
-- Groups transactions by account using `aggregateByAccount`
-- Each account becomes a colored segment. Width = percentage of total income
-- Colors come from `accountColors` in the store (same colors as [`AccountTag`](AccountTag.md))
-- Hovering a segment shows a tooltip with account name, amount, and percentage
-- A legend below the bar shows each account with its color dot and percentage
-
-## Returns null
-
-If there are no income transactions, the component renders nothing.
+Renders nothing when there is no income this month.
