@@ -1,7 +1,10 @@
 # CI
 #
-# Lint, unit tests and a production build on every push and pull request.
-# Offline only, nothing here talks to the production server.
+# Jobs:
+#    check (lint, unit tests and a production build)
+#    live (live tests against a local PocketBase in Docker)
+#
+# Nothing here talks to the production server.
 
 name: CI
 
@@ -29,3 +32,16 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run test:live
