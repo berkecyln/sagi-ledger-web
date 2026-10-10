@@ -36,8 +36,8 @@ type Row = [TransactionType, number, string, string, string];
 // Local server and the invite code from pocketbase/pb_schema.json
 const API_URL = "http://127.0.0.1:8090";
 const INVITE_CODE = "test-invite-code";
-const USER = "sagi_test";
-const PASSWORD = "sagi-test-password";
+const USER = "test";
+const PASSWORD = "test1234";
 
 const ACCOUNTS: Record<string, { color: string; base: number }> = {
   TEB: { color: ACCOUNT_PALETTE[0], base: 45000 },

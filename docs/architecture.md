@@ -155,9 +155,18 @@ Any other path redirects to `/`.
 | `pocketbase/Dockerfile` | PocketBase at the same version as production, checksum verified |
 | `pocketbase/pb_schema.json` | Production schema export, test invite code `test-invite-code` |
 | `pocketbase/pb_migrations/` | Imports the schema and a superuser `test@sagi.local` on first start |
-| `pocketbase/pb.sh` | `up`, `down`, `reset` for the dev container |
+| `pocketbase/pb.sh` | `up`, `down`, `reset` for the dev container, `test-up`, `test-down` for the test container |
 
 The data is kept in a Docker volume between runs. `npm run seed` deletes it, starts fresh and creates the demo user `sagi_test` with password `sagi-test-password`. After a schema change in production, export the collections again into both schema files and run `npm run seed`.
+
+## Tests
+
+| Command | Runs |
+|---|---|
+| `npm test` | `tests/unit`, offline, store and api layer mocked |
+| `npm run test:live` | `tests/live` against a fresh PocketBase on `127.0.0.1:8091`, started before and removed after the run |
+
+The live tests cover the api layer round trip, the server rules for money, dates, labels and accounts, and the isolation between two users. Nothing runs against production.
 
 ## Theming
 

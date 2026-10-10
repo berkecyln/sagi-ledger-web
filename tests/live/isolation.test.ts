@@ -1,7 +1,7 @@
 /**
  * Live isolation tests
  *
- * Two throwaway users attack each other's rows on the production server.
+ * Two throwaway users attack each other's rows on the local test server.
  * Every attempt must be refused by the access rules, not by the app.
  *
  * Users:
@@ -10,19 +10,15 @@
  *
  */
 
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import PocketBase, { BaseAuthStore, ClientResponseError } from "pocketbase";
+import { beforeAll, describe, expect, it } from "vitest";
+import PocketBase, { BaseAuthStore } from "pocketbase";
 import { newId } from "../../src/api";
-
-const API_URL = "https://api.sagiledger.com";
-const INVITE_CODE = process.env.SAGI_INVITE_CODE;
-const LONG = 60_000;
+import { TEST_API_URL, newUser, statusOf } from "./server";
 
 // One client per user, each with its own in memory session
-const a = new PocketBase(API_URL, new BaseAuthStore());
-const b = new PocketBase(API_URL, new BaseAuthStore());
-const anon = new PocketBase(API_URL, new BaseAuthStore());
-for (const client of [a, b, anon]) client.autoCancellation(false);
+let a: PocketBase;
+let b: PocketBase;
+const anon = new PocketBase(TEST_API_URL, new BaseAuthStore());
 
 const ids = {
   userA: "",
@@ -35,45 +31,10 @@ const ids = {
   templateA: newId(),
 };
 
-// Create a user with the invite code and sign the client in
-async function signup(client: PocketBase, prefix: string): Promise<string> {
-  const username = `${prefix}_${Math.floor(Math.random() * 100000)}`;
-  const password = `Probe_${newId()}`;
-  await client.collection("users").create({ username, password, passwordConfirm: password, inviteCode: INVITE_CODE });
-  const auth = await client.collection("users").authWithPassword(username, password);
-  return auth.record.id;
-}
-
-// Return the HTTP status of a request, 200 when it succeeds
-async function statusOf(request: Promise<unknown>): Promise<number> {
-  try {
-    await request;
-    return 200;
-  } catch (error) {
-    if (error instanceof ClientResponseError) return error.status;
-    throw error;
-  }
-}
-
-// Delete every row of a signed in user, then the user
-async function cleanup(client: PocketBase, userId: string) {
-  if (!userId) return;
-  // Transactions first, they block the account cascade
-  for (const name of ["transactions", "template_items", "descriptions", "accounts"]) {
-    const rows = await client.collection(name).getFullList();
-    for (const row of rows) await client.collection(name).delete(row.id);
-  }
-  await client.collection("users").delete(userId);
-  client.authStore.clear();
-}
-
 // Two users, each with real rows
 beforeAll(async () => {
-  if (!INVITE_CODE) {
-    throw new Error("SAGI_INVITE_CODE is not set, copy .env.example to .env.local and fill it in.");
-  }
-  ids.userA = await signup(a, "probe_iso_a");
-  ids.userB = await signup(b, "probe_iso_b");
+  ({ client: a, id: ids.userA } = await newUser("probe_iso_a"));
+  ({ client: b, id: ids.userB } = await newUser("probe_iso_b"));
 
   const tx = { type: "EXPENSE", amount: 1000, description: "Probe", date: "2026-09-01" };
   await a.collection("accounts").create({ id: ids.accountA, user: ids.userA, name: "A1", color: "#495867", baseBalance: 0 });
@@ -82,16 +43,7 @@ beforeAll(async () => {
   await a.collection("template_items").create({ id: ids.templateA, user: ids.userA, account: ids.accountA, type: "EXPENSE", amount: 500, description: "Probe", day: 1 });
   await b.collection("accounts").create({ id: ids.accountB, user: ids.userB, name: "B1", color: "#495867", baseBalance: 0 });
   await b.collection("transactions").create({ id: ids.txB, user: ids.userB, account: ids.accountB, ...tx });
-}, LONG);
-
-// Remove both users, also after a failure
-afterAll(async () => {
-  // B first, a row handed over by A would block A's account delete
-  const results = await Promise.allSettled([cleanup(b, ids.userB)]);
-  results.push(...(await Promise.allSettled([cleanup(a, ids.userA)])));
-  const failed = results.find((r) => r.status === "rejected");
-  if (failed) throw failed.reason;
-}, LONG);
+});
 
 describe("reading", () => {
   it("lists only own rows", async () => {

@@ -1,17 +1,32 @@
 /**
  * Vitest configuration
  *
- * Runs the tests in tests/ against the source in src.
+ * Projects:
+ *    unit (tests/unit, offline)
+ *    live (tests/live, against a local PocketBase started by tests/live/setup.ts)
  *
  */
 
-import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    include: ["tests/**/*.test.ts"],
-    // reas test valuses from env.local
-    env: loadEnv("test", process.cwd(), "SAGI_"),
+    projects: [
+      {
+        test: {
+          name: "unit",
+          include: ["tests/unit/**/*.test.ts"],
+        },
+      },
+      {
+        test: {
+          name: "live",
+          include: ["tests/live/**/*.test.ts"],
+          globalSetup: ["tests/live/setup.ts"],
+          testTimeout: 60_000,
+          hookTimeout: 60_000,
+        },
+      },
+    ],
   },
 });
