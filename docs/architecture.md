@@ -62,7 +62,7 @@ Nothing is stored in the browser. After sign in `AuthGate` calls `loadAll()` onc
 Every action updates the store first, then writes to the server:
 
 - **Optimistic:** the screen changes at once.
-- **Rollback:** if the write fails, only the changed part is restored and `ErrorBanner` shows the reason.
+- **Rollback:** if the write fails, only the changed part is restored and `ErrorBanner` shows the reason. A failed template apply reloads everything from the server instead, as part of the month may already be written.
 - **Throttle:** writes are queued at 15 per 5 seconds, under the server limit of 20. Applying a large template shows a progress bar under the MonthBar.
 - **Unsaved guard:** `UnsavedGuard` warns before closing the tab while writes are still pending.
 
@@ -72,7 +72,7 @@ Two devices editing the same row is last write wins.
 
 Months start empty. **Apply Template** in the MonthBar replaces the active month's transactions with a copy of the template. A template item's day is placed in the month and clamped to its length, so day 31 lands on the 28th in February.
 
-Dashboard, Analytics and Ledger read and write only the active month.
+Dashboard, Analytics and Ledger read and edit only the active month. A transaction is always stored in the month of its date, so a new or edited row dated in another month moves there.
 
 ## Accounts
 

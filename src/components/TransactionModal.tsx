@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { X, Check } from 'lucide-react';
-import { useStore } from '../store';
+import { templateDateToFull, todayDate, useStore } from '../store';
 import { ACCOUNT_PALETTE } from '../utils/colors';
 import { parseEuro, toEuroInput } from '../utils/aggregations';
 import CreatableSelect from './CreatableSelect';
@@ -25,18 +25,22 @@ const inputClass =
   'w-full bg-subtle border border-stroke rounded px-3 py-2 text-base md:text-sm text-ink placeholder:text-ink-ghost focus:outline-none focus:border-accent';
 const labelClass = 'block text-xs font-medium text-ink-muted mb-1';
 
-function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
+// Today in the current month, empty in any other month
+function defaultDate(monthKey: string): string {
+  const today = todayDate();
+  return today.startsWith(monthKey) ? today : '';
 }
 
 export default function TransactionModal({ type, onClose, editTransaction, isTemplate = false }: Props) {
-  const { accountColors, descriptions, setAccountColor, addDescription, deleteDescription, addTransaction, updateTransaction, addTemplateItem, updateTemplateItem } = useStore();
+  const { activeMonthKey, accountColors, descriptions, setAccountColor, addDescription, deleteDescription, addTransaction, updateTransaction, addTemplateItem, updateTemplateItem } = useStore();
 
   const isEdit = !!editTransaction;
 
   const [amount, setAmount] = useState(editTransaction ? toEuroInput(editTransaction.amount) : '');
   const [amountError, setAmountError] = useState('');
-  const [date, setDate] = useState(editTransaction?.date ?? todayStr());
+  const [date, setDate] = useState(editTransaction?.date ?? defaultDate(activeMonthKey));
+  // Limit a new date to the viewed month when it starts empty
+  const [bounded] = useState(!editTransaction && date === '');
   const [templateDay, setTemplateDay] = useState(isTemplate && editTransaction ? editTransaction.date : '');
   const [description, setDescription] = useState(editTransaction?.description ?? '');
   const [account, setAccount] = useState(editTransaction?.account ?? '');
@@ -111,6 +115,8 @@ export default function TransactionModal({ type, onClose, editTransaction, isTem
                 <label htmlFor="date" className={labelClass}>Date</label>
                 <input
                   id="date" type="date" required autoComplete="off" value={date} onChange={(e) => setDate(e.target.value)}
+                  min={bounded ? `${activeMonthKey}-01` : undefined}
+                  max={bounded ? templateDateToFull('31', activeMonthKey) : undefined}
                   className={inputClass}
                 />
               </div>

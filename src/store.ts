@@ -11,6 +11,7 @@ import {
   ensureAccount,
   accountIdFor,
   newId,
+  loadAll,
   updateAccount,
   updateTemplateItem as apiUpdateTemplateItem,
   updateTransaction as apiUpdateTransaction,
@@ -20,8 +21,21 @@ import type { Transaction, TransactionType } from "./types";
 import { getNextColor } from "./utils/colors";
 import { isAccountInUse } from "./utils/aggregations";
 
+// Today as YYYY-MM-DD in local time
+export function todayDate(): string {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
 function todayKey(): string {
-  return new Date().toISOString().slice(0, 7);
+  return todayDate().slice(0, 7);
+}
+
+// Month key of a full date
+function monthOf(date: string): string {
+  return date.slice(0, 7);
 }
 
 function generateId(): string {
@@ -160,43 +174,57 @@ export const useStore = create<StoreState>()((set, get) => {
           step();
         }
       })()
-        .catch(rollback({ months: { ...months, [activeMonthKey]: previous } }))
+        .catch(async (error) => {
+          // Reload the server state after a partial write
+          try {
+            get().hydrate(await loadAll());
+          } catch {
+            set({ months: { ...months, [activeMonthKey]: previous } });
+          }
+          set({ writeError: describeError(error) });
+        })
         .finally(() => set({ applying: null }));
     },
 
+    // Add to the month of its date
     addTransaction: (tx) => {
-      const { activeMonthKey, months, accountColors } = get();
+      const { months, accountColors } = get();
       const newTx: Transaction = { ...tx, id: generateId() };
-      const current = months[activeMonthKey] ?? [];
+      const key = monthOf(tx.date);
       const colors = ensureAccountColor(tx.account, accountColors);
 
       set((s) => ({
-        months: { ...s.months, [activeMonthKey]: [...current, newTx] },
+        months: { ...s.months, [key]: [...(s.months[key] ?? []), newTx] },
         accountColors: colors,
       }));
 
-      createTransaction(newTx, colors[tx.account]).catch(
-        rollback({ months: { ...months, [activeMonthKey]: current } }),
-      );
+      createTransaction(newTx, colors[tx.account]).catch(rollback({ months }));
     },
 
+    // Update in place, or move to the month of its new date
     updateTransaction: (id, updates) => {
       const { activeMonthKey, months, accountColors } = get();
-      const current = months[activeMonthKey] ?? [];
+      const existing = months[activeMonthKey]?.find((t) => t.id === id);
+      if (!existing) return;
+
+      const updated = { ...existing, ...updates };
+      const from = activeMonthKey;
+      const to = monthOf(updated.date);
       const colors = ensureAccountColor(updates.account, accountColors);
 
-      set((s) => ({
-        months: {
-          ...s.months,
-          [activeMonthKey]: current.map((t) =>
-            t.id === id ? { ...t, ...updates } : t,
-          ),
-        },
-        accountColors: colors,
-      }));
+      set((s) => {
+        const next = { ...s.months };
+        if (from === to) {
+          next[from] = next[from].map((t) => (t.id === id ? updated : t));
+        } else {
+          next[from] = next[from].filter((t) => t.id !== id);
+          next[to] = [...(next[to] ?? []), updated];
+        }
+        return { months: next, accountColors: colors };
+      });
 
       apiUpdateTransaction(id, updates, colors[updates.account]).catch(
-        rollback({ months: { ...months, [activeMonthKey]: current } }),
+        rollback({ months }),
       );
     },
 
