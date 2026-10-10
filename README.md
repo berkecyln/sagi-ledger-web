@@ -46,6 +46,7 @@ More in [docs/architecture.md](docs/architecture.md).
 
 - [Architecture](docs/architecture.md)
 - [Theming](docs/theming.md)
+- [Docker](docs/docker.md), the local PocketBase for development and tests
 - [Pages](docs/pages/) and [components](docs/components/)
 
 ## License
