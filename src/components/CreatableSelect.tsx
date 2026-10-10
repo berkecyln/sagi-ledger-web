@@ -33,6 +33,8 @@ export default function CreatableSelect({ value, onChange, options, placeholder,
   const [confirming, setConfirming] = useState<string | null>(null);
   const [highlightedOption, setHighlightedOption] = useState<HighlightableOption | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const holdTimer = useRef<number | undefined>(undefined);
   const held = useRef(false);
 
@@ -61,6 +63,24 @@ export default function CreatableSelect({ value, onChange, options, placeholder,
   useEffect(() => {
     setQuery(value);
   }, [value]);
+
+  // Scroll highlighted option into view
+  useEffect(() => {
+    if (open && highlightedOption !== null) {
+      const list = listRef.current;
+      const item = itemRefs.current[highlightedOption.index];
+      if (list && item) {
+        const listRect = list.getBoundingClientRect();
+        const itemRect = item.getBoundingClientRect();
+
+        if (itemRect.bottom > listRect.bottom) {
+          list.scrollTop += itemRect.bottom - listRect.bottom;
+        } else if (itemRect.top < listRect.top) {
+          list.scrollTop -= listRect.top - itemRect.top;
+        }
+      }
+    }
+  }, [highlightedOption, open]);
 
   // Close the list on a click outside
   useEffect(() => {
@@ -169,7 +189,7 @@ export default function CreatableSelect({ value, onChange, options, placeholder,
         }}
       />
       {open && (filtered.length > 0 || canCreate) && (
-        <ul className="absolute z-50 w-full mt-1 bg-card border border-stroke rounded shadow-lg max-h-40 overflow-y-auto">
+        <ul ref={listRef} className="absolute z-50 w-full mt-1 bg-card border border-stroke rounded shadow-lg max-h-40 overflow-y-auto">
           {filtered.map((o, i) =>
             confirming === o ? (
               <li key={o} className="flex items-center justify-between gap-2 px-3 py-3 text-sm bg-thead">
@@ -183,6 +203,9 @@ export default function CreatableSelect({ value, onChange, options, placeholder,
             ) : (
               <li
                 key={o}
+                ref={(el) => {
+                  itemRefs.current[i] = el;
+                }}
                 onClick={() => handleRowClick(o)}
                 onPointerDown={(e) => startHold(e, o)}
                 onPointerUp={cancelHold}
