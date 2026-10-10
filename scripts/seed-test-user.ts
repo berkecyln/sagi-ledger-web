@@ -5,8 +5,8 @@
  * Never runs against production.
  *
  * Test user:
- *    username (sagi_test)
- *    password (sagi-test-password)
+ *    username (test)
+ *    password (test1234)
  *
  * Seeded data:
  *    accounts (TEB and Sparkasse, with base balances)
