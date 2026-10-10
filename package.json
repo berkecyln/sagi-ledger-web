@@ -4,13 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "sh pocketbase/pb.sh up && vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run tests/unit",
     "test:live": "vitest run tests/live",
-    "seed": "tsx scripts/seed-test-user.ts"
+    "seed": "sh pocketbase/pb.sh reset && tsx scripts/seed-test-user.ts",
+    "pb:down": "sh pocketbase/pb.sh down"
   },
   "dependencies": {
     "lucide-react": "^1.7.0",

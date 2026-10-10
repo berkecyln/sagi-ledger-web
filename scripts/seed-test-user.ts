@@ -1,7 +1,12 @@
 /**
  * Seed the UI test user
  *
- * Signs in as the test user, wipes its data and writes a fresh demo ledger.
+ * Creates the test user on the fresh local database and writes a demo ledger.
+ * Never runs against production.
+ *
+ * Test user:
+ *    username (sagi_test)
+ *    password (sagi-test-password)
  *
  * Seeded data:
  *    accounts (TEB and Sparkasse, with base balances)
@@ -11,18 +16,14 @@
  *
  */
 
-import { existsSync } from "node:fs";
 import {
   createDescription,
   createTemplateItem,
   createTransaction,
-  currentUser,
   ensureAccount,
   loadAll,
-  login,
   newId,
   pb,
-  resetAccountCache,
   signup,
 } from "../src/api";
 import { templateDateToFull } from "../src/store";
@@ -32,11 +33,11 @@ import type { TransactionType } from "../src/types";
 // type, cents, description, account, day of month
 type Row = [TransactionType, number, string, string, string];
 
-interface Config {
-  inviteCode: string;
-  user: string;
-  password: string;
-}
+// Local server and the invite code from pocketbase/pb_schema.json
+const API_URL = "http://127.0.0.1:8090";
+const INVITE_CODE = "test-invite-code";
+const USER = "sagi_test";
+const PASSWORD = "sagi-test-password";
 
 const ACCOUNTS: Record<string, { color: string; base: number }> = {
   TEB: { color: ACCOUNT_PALETTE[0], base: 45000 },
@@ -73,46 +74,12 @@ const VARIABLE: Row[] = [
   ["EXPENSE", 3410, "Groceries", "TEB", "24"],
 ];
 
-// Load .env.local and return the required values
-function readConfig(): Config {
-  if (existsSync(".env.local")) process.loadEnvFile(".env.local");
-  const { SAGI_INVITE_CODE, SAGI_TEST_USER, SAGI_TEST_PASSWORD } = process.env;
-  if (!SAGI_INVITE_CODE || !SAGI_TEST_USER || !SAGI_TEST_PASSWORD) {
-    throw new Error("SAGI_ values are missing, copy .env.example to .env.local and fill it in.");
-  }
-  return { inviteCode: SAGI_INVITE_CODE, user: SAGI_TEST_USER, password: SAGI_TEST_PASSWORD };
-}
-
 // Return the YYYY-MM key offset from the current month
 function monthKey(offset: number): string {
   const d = new Date();
   d.setDate(1);
   d.setMonth(d.getMonth() + offset);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
-
-// Sign in, creating the test user on the first run
-async function signIn({ inviteCode, user, password }: Config) {
-  try {
-    await login(user, password);
-  } catch {
-    await signup(user, password, inviteCode);
-  }
-  if (currentUser()?.username !== user) {
-    throw new Error(`Signed in as ${currentUser()?.username}, refusing to wipe it.`);
-  }
-}
-
-// Delete every row the test user owns
-async function wipe() {
-  for (const name of ["transactions", "template_items", "descriptions", "accounts"]) {
-    const rows = await pb.collection(name).getFullList();
-    for (let i = 0; i < rows.length; i += 10) {
-      await Promise.all(rows.slice(i, i + 10).map((r) => pb.collection(name).delete(r.id)));
-    }
-  }
-  // Cached account ids point at the deleted rows
-  resetAccountCache();
 }
 
 // Write accounts, labels, template and three months of rows
@@ -149,10 +116,8 @@ async function seed() {
 }
 
 async function main() {
-  const config = readConfig();
-  await signIn(config);
-  console.log(`Signed in as ${config.user}, wiping...`);
-  await wipe();
+  pb.baseURL = API_URL;
+  await signup(USER, PASSWORD, INVITE_CODE);
 
   console.log("Seeding, the write throttle makes this take about 20 seconds...");
   await seed();
@@ -161,7 +126,7 @@ async function main() {
   console.log(`Months: ${Object.keys(state.months).sort().join(", ")}`);
   console.log(`Transactions: ${Object.values(state.months).flat().length}`);
   console.log(`Template items: ${state.template.length}`);
-  console.log(`\nSign in as ${config.user}, password in .env.local`);
+  console.log(`\nSign in as ${USER} / ${PASSWORD}`);
 }
 
 main().catch((error) => {

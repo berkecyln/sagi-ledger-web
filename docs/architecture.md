@@ -146,6 +146,19 @@ Any other path redirects to `/`.
 | `formatEuro`, `parseEuro`, `toEuroInput` | Display and input of cent amounts |
 | `getNextColor` | Colour for a new account |
 
+## Local development
+
+`npm run dev` never touches production. It starts a local PocketBase in Docker on `127.0.0.1:8090` and the app reads it through `.env.development`.
+
+| Path | Holds |
+|---|---|
+| `pocketbase/Dockerfile` | PocketBase at the same version as production, checksum verified |
+| `pocketbase/pb_schema.json` | Production schema export, test invite code `test-invite-code` |
+| `pocketbase/pb_migrations/` | Imports the schema and a superuser `test@sagi.local` on first start |
+| `pocketbase/pb.sh` | `up`, `down`, `reset` for the dev container |
+
+The data is kept in a Docker volume between runs. `npm run seed` deletes it, starts fresh and creates the demo user `sagi_test` with password `sagi-test-password`. After a schema change in production, export the collections again into both schema files and run `npm run seed`.
+
 ## Theming
 
 All colours are CSS custom properties in `src/index.css`. See [theming.md](theming.md).
