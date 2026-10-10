@@ -6,7 +6,7 @@
  *
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { X } from 'lucide-react';
 
 interface Props {
@@ -19,6 +19,11 @@ interface Props {
   onDelete?: (val: string) => void; // enables delete, cross on desktop and hold on touch
 }
 
+interface HighlightableOption {
+  label: string;
+  index: number;
+}
+
 // Hold time to open the delete confirm
 const HOLD_MS = 500;
 
@@ -26,13 +31,31 @@ export default function CreatableSelect({ value, onChange, options, placeholder,
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(value);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [highlightedOption, setHighlightedOption] = useState<HighlightableOption | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const holdTimer = useRef<number | undefined>(undefined);
   const held = useRef(false);
 
-  const filtered = options.filter((o) =>
-    o.toLowerCase().includes(query.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    return options.filter((o) => o.toLowerCase().includes(query.toLowerCase()));
+  }, [options, query]);
+
+  // Update the highlighted option's index if the list changes
+  useEffect(() => {
+    if (highlightedOption) {
+      const newIndex = filtered.findIndex(
+        (o) => o.toLowerCase() === highlightedOption.label.toLowerCase()
+      );
+      if (newIndex !== -1) {
+        if (newIndex !== highlightedOption.index) {
+          setHighlightedOption({ label: highlightedOption.label, index: newIndex });
+        }
+      } else {
+        setHighlightedOption(null); // Item is no longer in the list
+      }
+    }
+  }, [query]);
+  
   const canCreate = !!onCreate && query.trim() !== '' && !options.includes(query.trim());
 
   useEffect(() => {
@@ -58,6 +81,7 @@ export default function CreatableSelect({ value, onChange, options, placeholder,
     setQuery(val);
     setOpen(false); // close list after selection
     setConfirming(null);
+    setHighlightedOption(null);
   }
 
   // Create new label entry
@@ -117,10 +141,36 @@ export default function CreatableSelect({ value, onChange, options, placeholder,
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
+        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+          switch (e.key) {
+            case 'ArrowDown':
+              e.preventDefault();
+              setHighlightedOption((prev) => {
+                if (prev === null) return { label: filtered[0], index: 0 };
+                if (prev.index === filtered.length - 1) return prev;
+                return { label: filtered[prev.index + 1], index: prev.index + 1 };
+              });
+              break;
+            case 'ArrowUp':
+              e.preventDefault();
+              setHighlightedOption((prev) => {
+                if (prev === null) return { label: filtered[filtered.length - 1], index: filtered.length - 1 };
+                if (prev.index === 0) return prev;
+                return { label: filtered[prev.index - 1], index: prev.index - 1 };
+              });
+              break;
+            case 'Enter':
+              if (highlightedOption !== null) {
+                e.preventDefault();
+                select(highlightedOption.label);
+              }
+              break;
+          }
+        }}
       />
       {open && (filtered.length > 0 || canCreate) && (
         <ul className="absolute z-50 w-full mt-1 bg-card border border-stroke rounded shadow-lg max-h-40 overflow-y-auto">
-          {filtered.map((o) =>
+          {filtered.map((o, i) =>
             confirming === o ? (
               <li key={o} className="flex items-center justify-between gap-2 px-3 py-3 text-sm bg-thead">
                 {/* Delete confirm, opened by a hold */}
@@ -139,7 +189,7 @@ export default function CreatableSelect({ value, onChange, options, placeholder,
                 onPointerLeave={cancelHold}
                 onPointerCancel={cancelHold}
                 onContextMenu={(e) => { if (onDelete) e.preventDefault(); }}
-                className="group flex items-center justify-between gap-2 px-3 py-2 pointer-coarse:py-3 text-sm text-ink cursor-pointer select-none hover:bg-thead"
+                className={`group flex items-center justify-between gap-2 px-3 py-2 pointer-coarse:py-3 text-sm text-ink cursor-pointer select-none hover:bg-thead ${highlightedOption?.index === i ? 'bg-thead' : ''}`}
               >
                 <span className="truncate">{o}</span>
                 {onDelete && (
