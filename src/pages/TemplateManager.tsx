@@ -41,52 +41,54 @@ function TemplateSection({ type, items, onEdit }: SectionProps) {
   const tone = TONE[type];
 
   return (
-    <div className="border border-stroke rounded-lg overflow-hidden">
+    <div className="border border-stroke rounded-lg overflow-hidden flex flex-col min-h-0">
       <div className={`px-4 py-2.5 border-b ${tone.header}`}>
         <span className={`text-sm font-semibold ${tone.text}`}>{tone.title}</span>
       </div>
 
       {/* Table, desktop only */}
-      <table className="max-md:hidden w-full text-sm">
-        <thead className="bg-thead border-b border-stroke">
-          <tr>
-            <th className={th}>Description</th>
-            <th className={th}>Account</th>
-            <th className={th}>Day</th>
-            <th className={`${th} text-right`}>Amount</th>
-            <th className="px-4 py-2 w-10" />
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((tx, i) => (
-            <tr key={tx.id} className={i % 2 === 0 ? 'bg-card' : 'bg-subtle'}>
-              <td className="px-4 py-2.5 text-ink">{tx.description}</td>
-              <td className="px-4 py-2.5"><AccountTag account={tx.account} color={accountColors[tx.account]} /></td>
-              <td className="px-4 py-2.5 text-ink-faint">{formatDay(tx.date)}</td>
-              <td className={`px-4 py-2.5 text-right font-medium ${tone.text}`}>{formatEuro(tx.amount)}</td>
-              <td className="px-4 py-2.5 text-right">
-                {confirmingId === tx.id ? (
-                  <div className="flex items-center justify-end gap-3 whitespace-nowrap text-xs font-medium">
-                    {/* Delete confirm */}
-                    <span className="text-ink-muted">Delete?</span>
-                    <button onClick={() => { deleteTemplateItem(tx.id); setConfirmingId(null); }} className="text-danger">Yes</button>
-                    <button onClick={() => setConfirmingId(null)} className="text-ink-muted hover:text-ink">No</button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => onEdit(tx)} className="text-stroke hover:text-accent transition-colors" aria-label="Edit">
-                      <Pencil size={13} />
-                    </button>
-                    <button onClick={() => setConfirmingId(tx.id)} className="text-stroke hover:text-danger transition-colors" aria-label="Delete">
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                )}
-              </td>
+      <div className="bg-card flex-1 overflow-y-auto min-h-0 custom-scrollbar max-md:hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-thead border-b border-stroke">
+            <tr>
+              <th className={th}>Description</th>
+              <th className={th}>Account</th>
+              <th className={th}>Day</th>
+              <th className={`${th} text-right`}>Amount</th>
+              <th className="px-4 py-2 w-10" />
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {items.map((tx, i) => (
+              <tr key={tx.id} className={i % 2 === 0 ? 'bg-card' : 'bg-subtle'}>
+                <td className="px-4 py-2.5 text-ink">{tx.description}</td>
+                <td className="px-4 py-2.5"><AccountTag account={tx.account} color={accountColors[tx.account]} /></td>
+                <td className="px-4 py-2.5 text-ink-faint">{formatDay(tx.date)}</td>
+                <td className={`px-4 py-2.5 text-right font-medium ${tone.text}`}>{formatEuro(tx.amount)}</td>
+                <td className="px-4 py-2.5 text-right">
+                  {confirmingId === tx.id ? (
+                    <div className="flex items-center justify-end gap-3 whitespace-nowrap text-xs font-medium">
+                      {/* Delete confirm */}
+                      <span className="text-ink-muted">Delete?</span>
+                      <button onClick={() => { deleteTemplateItem(tx.id); setConfirmingId(null); }} className="text-danger">Yes</button>
+                      <button onClick={() => setConfirmingId(null)} className="text-ink-muted hover:text-ink">No</button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => onEdit(tx)} className="text-stroke hover:text-accent transition-colors" aria-label="Edit">
+                        <Pencil size={13} />
+                      </button>
+                      <button onClick={() => setConfirmingId(tx.id)} className="text-stroke hover:text-danger transition-colors" aria-label="Delete">
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* Rows, phones only */}
       <ul className="md:hidden bg-card divide-y divide-stroke-light">
@@ -179,8 +181,8 @@ export default function TemplateManager() {
           No template items yet. Add recurring income or expenses above.
         </div>
       ) : (
-        // Scrolls inside the page on desktop
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 content-start md:min-h-0 md:overflow-y-auto custom-scrollbar">
+        // Each card scrolls inside the page on desktop
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 content-start md:content-normal md:flex-1 md:min-h-0">
           {incomes.length > 0 && <TemplateSection type="INCOME" items={incomes} onEdit={setEditTx} />}
           {expenses.length > 0 && <TemplateSection type="EXPENSE" items={expenses} onEdit={setEditTx} />}
         </div>

@@ -157,7 +157,7 @@ Any other path redirects to `/`.
 | `pocketbase/pb_migrations/` | Imports the schema and a superuser `test@sagi.local` on first start |
 | `pocketbase/pb.sh` | `up`, `down`, `reset` for the dev container, `test-up`, `test-down` for the test container |
 
-The data is kept in a Docker volume between runs. `npm run seed` deletes it, starts fresh and creates the demo user `test` with password `test1234`. After a schema change in production, export the collections again into both schema files and run `npm run seed`.
+The data is kept in a Docker volume between runs. `npm run seed` deletes it, starts fresh and creates the demo user `test` with password `test1234`. Commands, schema changes and troubleshooting are in [docker.md](docker.md).
 
 ## Tests
 
