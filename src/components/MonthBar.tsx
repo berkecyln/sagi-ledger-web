@@ -89,7 +89,7 @@ export default function MonthBar() {
           {applying ? (
             <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-ink-muted">
               <Loader2 size={14} className="animate-spin text-accent" />
-              Saving {applying.done} of {applying.total}
+              Saving {Math.round((applying.done / applying.total) * 100)}%
             </div>
           ) : confirming ? (
             <div className="flex items-center gap-2">
